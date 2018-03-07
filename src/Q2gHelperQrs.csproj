@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <RootNamespace>Q2gHelperQrs</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Konrad Mattheis und Martin Berthold</Authors>
+    <Copyright>Copyright (c) 2018</Copyright>
+    <Company>q2g</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+    <PackageReference Include="NLog" Version="4.5.0-rc06" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Q2gHelperPem">
+      <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Release\netcoreapp2.0\Q2gHelperPem.dll</HintPath>
+    </Reference>
+    <Reference Include="SerApi">
+      <HintPath>..\..\ser-api-nuget\src\bin\Release\netcoreapp2.0\SerApi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
