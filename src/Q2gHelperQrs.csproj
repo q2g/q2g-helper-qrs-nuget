@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <RootNamespace>Q2gHelperQrsNuget</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Konrad Mattheis und Martin Berthold</Authors>
+    <Copyright>Copyright (c) 2018</Copyright>
+    <Company>q2g</Company>
   </PropertyGroup>
 
   <ItemGroup>
