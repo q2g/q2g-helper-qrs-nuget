@@ -7,7 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  */
 #endregion
 
-namespace Q2gHelperQrsNuget
+namespace Q2gHelperQrs
 {
     #region Usings
     using Newtonsoft.Json;

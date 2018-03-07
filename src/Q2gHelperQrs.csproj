@@ -10,9 +10,4 @@
     <PackageReference Include="NLog" Version="4.5.0-rc06" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Q2gHelperPemNuget\Q2gHelperPemNuget.csproj" />
-    <ProjectReference Include="..\SerApiNuget\SerApiNuget.csproj" />
-  </ItemGroup>
-
 </Project>
