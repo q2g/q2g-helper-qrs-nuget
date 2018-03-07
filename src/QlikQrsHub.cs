@@ -14,7 +14,7 @@ namespace Q2gHelperQrs
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Serialization;
     using NLog;
-    using SerApiNuget;
+    using SerApi;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -25,7 +25,7 @@ namespace Q2gHelperQrs
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
-    using Q2gHelperPemNuget;
+    using Q2gHelperPem;
     using System.Net.Http;
     using System.Net.Http.Headers;
     #endregion
