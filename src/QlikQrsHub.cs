@@ -25,7 +25,7 @@ namespace Q2gHelperQrs
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
-    using Q2gHelperPem;
+    using Q2gHelperPemNuget;
     using System.Net.Http;
     using System.Net.Http.Headers;
     #endregion

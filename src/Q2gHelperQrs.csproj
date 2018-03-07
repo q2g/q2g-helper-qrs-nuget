@@ -12,12 +12,11 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
     <PackageReference Include="NLog" Version="4.5.0-rc06" />
+    <PackageReference Include="Q2gHelperPem" Version="1.0.0" />
+    <PackageReference Include="SerApi" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Q2gHelperPem">
-      <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Release\netcoreapp2.0\Q2gHelperPem.dll</HintPath>
-    </Reference>
     <Reference Include="SerApi">
       <HintPath>..\..\ser-api-nuget\src\bin\Release\netcoreapp2.0\SerApi.dll</HintPath>
     </Reference>
