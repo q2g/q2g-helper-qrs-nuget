@@ -7,12 +7,13 @@
     <Authors>Konrad Mattheis und Martin Berthold</Authors>
     <Copyright>Copyright (c) 2018</Copyright>
     <Company>q2g</Company>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
     <PackageReference Include="NLog" Version="4.5.0-rc06" />
-    <PackageReference Include="Q2gHelperPem" Version="1.0.0" />
+    <PackageReference Include="Q2gHelperPem" Version="1.0.1" />
     <PackageReference Include="SerApi" Version="1.0.0" />
   </ItemGroup>
 
