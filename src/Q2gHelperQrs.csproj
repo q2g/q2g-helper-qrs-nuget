@@ -17,10 +17,4 @@
     <PackageReference Include="SerApi" Version="1.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="SerApi">
-      <HintPath>..\..\ser-api-nuget\src\bin\Release\netcoreapp2.0\SerApi.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

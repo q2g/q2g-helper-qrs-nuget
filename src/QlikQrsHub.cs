@@ -25,7 +25,6 @@ namespace Q2gHelperQrs
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
-    using Q2gHelperPem;
     using System.Net.Http;
     using System.Net.Http.Headers;
     #endregion
@@ -37,36 +36,15 @@ namespace Q2gHelperQrs
         #endregion
 
         #region Properties & Variables
-        public X509Certificate2 ClientCertficate { get; private set; }
-        public X509Certificate2 RootCertificate { get; private set; }
         public Uri ConnectUri { get; private set; }
-        public string UserId { get; set; }
-        public string UserDirectory { get; set; }
+        public Cookie ConnectCookie { get; private set; }
         #endregion
 
         #region Constructor
-        public QlikQrsHub(Uri connectUri,  string userId = "sa_reporting", string userDirectory = "INTERNAL",
-                          X509Certificate2 rootCertificate = null, IQlikCredentials credentials = null)
+        public QlikQrsHub(Uri connectUri, Cookie cookie)
         {
-            var clientCert = new X509Certificate2();
-            if (credentials == null)
-                ClientCertficate = clientCert.GetQlikClientCertificate();
-            else
-            {
-                if (credentials?.Type == QlikCredentialType.CERTIFICATE)
-                {
-                    var certAuth = credentials as CertificateAuth;
-                    ClientCertficate = clientCert.GetQlikClientCertificate(certAuth?.CertificatePath, certAuth?.CertPassword);
-                }
-                else
-                {
-                    throw new NotImplementedException($"Unknown authentication type {credentials.Type}");
-                }
-            }
-
             ConnectUri = connectUri;
-            UserId = userId;
-            UserDirectory = userDirectory;
+            ConnectCookie = cookie;
         }
         #endregion
 
@@ -98,31 +76,24 @@ namespace Q2gHelperQrs
             return uriBuilder.Uri;
         }
 
-        private string SendRequest(Uri requestUri, HttpMethod method, string contentType, byte[] data = null,
+        private async Task<string> SendRequest(Uri requestUri, HttpMethod method, string contentType, byte[] data = null,
                                    string filter = null, string orderby = null)
         {
-            //Create Key
             var key = GetRandomAlphanumericString(16);
             var keyRelativeUri = BuildUriWithKey(requestUri, key, filter, orderby);
-
-            var httpClientHandler = new HttpClientHandler();
-            httpClientHandler.ClientCertificates.Add(ClientCertficate);
-            httpClientHandler.ServerCertificateCustomValidationCallback += ValidateCertificate;
-
-            var httpClient = new HttpClient(httpClientHandler) { BaseAddress = ConnectUri };
+            var connectionHandler = new HttpClientHandler();
+            connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
+            var httpClient = new HttpClient(connectionHandler) { BaseAddress = ConnectUri };
             var request = new HttpRequestMessage(method, keyRelativeUri);
             request.Headers.Add("X-Qlik-Xrfkey", key);
-            request.Headers.Add("X-Qlik-User", $"UserDirectory={UserDirectory};UserId={UserId}");
-
             if (data != null)
             {
                 request.Content = new ByteArrayContent(data);
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
             }
-
-            var result = httpClient.SendAsync(request).Result;
+            var result = await httpClient.SendAsync(request);
             if (result.IsSuccessStatusCode)
-                return result.Content.ReadAsStringAsync().Result;
+                return await result.Content.ReadAsStringAsync();
             else
                 return null;
         }
@@ -148,7 +119,7 @@ namespace Q2gHelperQrs
             }
         }
 
-        private string CreateOrUpdatePublishedReport(Uri address, HubInfo jsonRequest)
+        private async Task<string> CreateOrUpdatePublishedReport(Uri address, HubInfo jsonRequest)
         {
             if (jsonRequest == null)
                 return null;
@@ -165,10 +136,10 @@ namespace Q2gHelperQrs
 
             var jsonStr = JsonConvert.SerializeObject(jsonRequest, settings);
             var data = Encoding.UTF8.GetBytes(jsonStr);
-            return SendRequest(address, httpMethod, "application/json", data);
+            return await SendRequest(address, httpMethod, "application/json", data);
         }
 
-        private void UploadFileInternal(HubInfo request)
+        private async Task UploadFileInternal(HubInfo request)
         {
             try
             {
@@ -183,7 +154,7 @@ namespace Q2gHelperQrs
                 {
                     //Create Published Report
                     var newUri = new Uri(ConnectUri, "/qrs/sharedcontent");
-                    result = CreateOrUpdatePublishedReport(newUri, request);
+                    result = await CreateOrUpdatePublishedReport(newUri, request);
                     var hubInfo = JsonConvert.DeserializeObject<HubInfo>(result);
                     contentId = hubInfo.Id.Value;
                 }
@@ -193,7 +164,7 @@ namespace Q2gHelperQrs
                     //-->>Logging bei mehreren Dokumenten mit dem selben Namen //Warnung
                     contentId = request.Id.Value;
                     var newUri = new Uri(ConnectUri, $"/qrs/sharedcontent/{contentId}");
-                    CreateOrUpdatePublishedReport(newUri, request);
+                    await CreateOrUpdatePublishedReport(newUri, request);
                 }
 
                 if (!String.IsNullOrEmpty(request.FullPath))
@@ -203,7 +174,7 @@ namespace Q2gHelperQrs
                     var contentType = $"application/{Path.GetExtension(request.FullPath).TrimStart('.')}";
                     var path = Path.GetFileName(request.FullPath);
                     var newUploadUri = new Uri(ConnectUri, $"/qrs/sharedcontent/{contentId}/uploadfile?externalpath={path}");
-                    result = SendRequest(newUploadUri, HttpMethod.Post, contentType, fileData);
+                    result = await SendRequest(newUploadUri, HttpMethod.Post, contentType, fileData);
                 }
             }
             catch (Exception ex)
@@ -211,39 +182,41 @@ namespace Q2gHelperQrs
                 throw new Exception("The file upload to the hub is failed.", ex);
             }
         }
-
-        public HubInfo GetFirstSharedContent(string contentName)
-        {
-            try
-            {
-                return GetAllSharedContent($"Name eq '{contentName}'").FirstOrDefault() ?? null;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("The content could not be determined.", ex);
-            }
-        }
-
-        public HubInfo GetSharedContent(Guid sharedId)
-        {
-            try
-            {
-                return GetAllSharedContent($"Id eq {sharedId.ToString()}").SingleOrDefault() ?? null;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("The content could not be determined.", ex);
-            }
-        }
         #endregion
 
         #region Public Methods
-        public int GetSharedContentCount(string filter = null)
+        public async Task<HubInfo> GetFirstSharedContent(string contentName)
+        {
+            try
+            {
+                var result = await GetAllSharedContent($"Name eq '{contentName}'");
+                return result.FirstOrDefault() ?? null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("The content could not be determined.", ex);
+            }
+        }
+
+        public async Task<HubInfo> GetSharedContent(Guid sharedId)
+        {
+            try
+            {
+                var result = await GetAllSharedContent($"Id eq {sharedId.ToString()}");
+                return result.SingleOrDefault() ?? null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("The content could not be determined.", ex);
+            }
+        }
+
+        public async Task<int> GetSharedContentCount(string filter = null)
         {
             try
             {
                 var newUri = new Uri(ConnectUri, "/qrs/sharedcontent/count");
-                var result = SendRequest(newUri, HttpMethod.Get, "application/json", null, filter);
+                var result = await SendRequest(newUri, HttpMethod.Get, "application/json", null, filter);
                 var count = JsonConvert.DeserializeObject<JToken>(result).Value<int>("value");
                 logger.Debug($"SharedContentCount: {count}");
                 return count;
@@ -255,12 +228,12 @@ namespace Q2gHelperQrs
             }
         }
 
-        public List<HubInfo> GetAllSharedContent(string filter = null, string orderby = null)
+        public async Task<List<HubInfo>> GetAllSharedContent(string filter = null, string orderby = null)
         {
             try
             {
                 var newUri = new Uri(ConnectUri, "/qrs/sharedcontent/full");
-                var result = SendRequest(newUri, HttpMethod.Get, "application/json", null, filter, orderby);
+                var result = await SendRequest(newUri, HttpMethod.Get, "application/json", null, filter, orderby);
                 return JsonConvert.DeserializeObject<List<HubInfo>>(result);
             }
             catch (Exception ex)
@@ -270,21 +243,13 @@ namespace Q2gHelperQrs
             }
         }
 
-        public bool DeleteAll()
+        public async Task<bool> DeleteAll()
         {
             try
             {
-                var sharedInfos = GetAllSharedContent();
-                var parallelOptions = new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount
-                };
-
-                Parallel.ForEach(sharedInfos, parallelOptions, (sharedInfo) =>
-                {
-                    Delete(sharedInfo.Id.Value);
-                });
-
+                var sharedInfos = await GetAllSharedContent();
+                foreach (var sharedInfo in sharedInfos)
+                    await Delete(sharedInfo.Id.Value);
                 return true;
             }
             catch (Exception ex)
@@ -294,13 +259,13 @@ namespace Q2gHelperQrs
             }
         }
 
-        public bool Delete(string contentName)
+        public async Task<bool> Delete(string contentName)
         {
             try
             {
-                var firstHubInfo = GetFirstSharedContent(contentName);
+                var firstHubInfo = await GetFirstSharedContent(contentName);
                 var newUri = new Uri(ConnectUri, $"/qrs/sharedcontent/{firstHubInfo.Id.Value}");
-                var result = SendRequest(newUri, HttpMethod.Delete, null, null);
+                var result = await SendRequest(newUri, HttpMethod.Delete, null, null);
                 return true;
             }
             catch (Exception ex)
@@ -310,12 +275,12 @@ namespace Q2gHelperQrs
             }
         }
 
-        public bool Delete(Guid id)
+        public async Task<bool> Delete(Guid id)
         {
             try
             {
                 var newUri = new Uri(ConnectUri, $"/qrs/sharedcontent/{id}");
-                var result = SendRequest(newUri, HttpMethod.Delete, null, null);
+                var result = await SendRequest(newUri, HttpMethod.Delete, null, null);
                 return true;
             }
             catch (Exception ex)
@@ -325,30 +290,7 @@ namespace Q2gHelperQrs
             }
         }
 
-        public bool CreateMany(List<HubInfo> createRequests)
-        {
-            try
-            {
-                var parallelOptions = new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount
-                };
-
-                Parallel.ForEach(createRequests, parallelOptions, (sharedInfo) =>
-                {
-                    Create(sharedInfo);
-                });
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"The method \"{nameof(CreateMany)}\" with id failed.");
-                return false;
-            }
-        }
-
-        public bool Create(string contentName, string fullpath, string description = null)
+        public async Task<bool> Create(string contentName, string fullpath, string description = null)
         {
             try
             {
@@ -364,7 +306,7 @@ namespace Q2gHelperQrs
                 if (!File.Exists(fullpath))
                     throw new Exception($"The file {fullpath} not exists.");
 
-                UploadFileInternal(createRequest);
+                await UploadFileInternal(createRequest);
                 return true;
             }
             catch (Exception ex)
@@ -374,7 +316,7 @@ namespace Q2gHelperQrs
             }
         }
 
-        public bool Create(HubInfo createRequest)
+        public async Task<bool> Create(HubInfo createRequest)
         {
             try
             {
@@ -382,7 +324,7 @@ namespace Q2gHelperQrs
                     throw new Exception($"The file {createRequest.FullPath} not exists.");
 
                 createRequest.InternalType = RequestType.CREATE;
-                UploadFileInternal(createRequest);
+                await UploadFileInternal(createRequest);
                 return true;
             }
             catch (Exception ex)
@@ -392,11 +334,11 @@ namespace Q2gHelperQrs
             }
         }
 
-        public bool Update(string contentName, string fullpath = null, string newContentName = null, string description = null)
+        public async Task<bool> Update(string contentName, string fullpath = null, string newContentName = null, string description = null)
         {
             try
             {
-                var updateRequest = GetFirstSharedContent(contentName);
+                var updateRequest = await GetFirstSharedContent(contentName);
                 if (updateRequest == null)
                     throw new Exception($"The content name {contentName} was not found.");
 
@@ -404,8 +346,7 @@ namespace Q2gHelperQrs
                 updateRequest.NewContentName = newContentName;
                 updateRequest.Description = description;
                 updateRequest.References.Clear();
-                Update(updateRequest);
-                return true;
+                return await Update(updateRequest);
             }
             catch (Exception ex)
             {
@@ -414,19 +355,18 @@ namespace Q2gHelperQrs
             }
         }
 
-        public bool Update(Guid sharedId, string fullpath = null, string newContentName = null, string description = null)
+        public async Task<bool> Update(Guid sharedId, string fullpath = null, string newContentName = null, string description = null)
         {
             try
             {
-                var updateRequest = GetSharedContent(sharedId);
+                var updateRequest = await GetSharedContent(sharedId);
                 if (updateRequest == null)
                     throw new Exception($"The content id {sharedId} was not found.");
 
                 updateRequest.FullPath = fullpath;
                 updateRequest.NewContentName = newContentName;
                 updateRequest.Description = description;
-                Update(updateRequest);
-                return true;
+                return await Update(updateRequest);
             }
             catch (Exception ex)
             {
@@ -435,13 +375,13 @@ namespace Q2gHelperQrs
             }
         }
 
-        public bool Update(HubInfo updateRequest)
+        public async Task<bool> Update(HubInfo updateRequest)
         {
             try
             {
                 updateRequest.InternalType = RequestType.UPDATE;
                 updateRequest.CreatedDate = updateRequest.ModifiedDate;
-                UploadFileInternal(updateRequest);
+                await UploadFileInternal(updateRequest);
                 return true;
             }
             catch (Exception ex)
