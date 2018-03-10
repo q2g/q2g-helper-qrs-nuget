@@ -77,7 +77,6 @@
     public class HubContentData
     {
         public string ContentType { get; set; }
-        public string Extention { get; set; }
         public byte[] FileData { get; set; }
         public string ExternalPath { get; set; }
     }
@@ -108,7 +107,7 @@
         public RequestType Type => RequestType.DELETE;
     }
 
-    public class HubGetCountRequest : IHubRequest
+    public class HubSelectCountRequest : IHubRequest
     {
         public string Filter { get; set; }
         public RequestType Type => RequestType.SELECT;
@@ -123,7 +122,7 @@
         }
     }
 
-    public class HubGetRequest : HubGetCountRequest
+    public class HubSelectRequest : HubSelectCountRequest
     {
         public string OrderBy { get; set; }
     }

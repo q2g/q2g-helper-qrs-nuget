@@ -37,8 +37,8 @@ namespace Q2gHelperQrs
         #endregion
 
         #region Properties & Variables
-        public Uri ConnectUri { get; private set; }
-        public Cookie ConnectCookie { get; private set; }
+        private Uri ConnectUri = null;
+        private Cookie ConnectCookie = null;
         private Uri SharedContentUri = null;
         #endregion
 
@@ -147,7 +147,7 @@ namespace Q2gHelperQrs
                 if (hubFileData != null)
                 {
                     logger.Debug("Upload content data.");
-                    var newUploadUri = new Uri($"{uriString}/{hubInfo.Id.Value}/uploadfile?externalpath={hubFileData.ExternalPath}");
+                    var newUploadUri = new Uri($"{uriString}/uploadfile?externalpath={hubFileData.ExternalPath}");
                     result = await SendRequestAsync(newUploadUri, HttpMethod.Post, hubFileData);
                 }
                 else
@@ -164,7 +164,7 @@ namespace Q2gHelperQrs
         #endregion
 
         #region Public Methods
-        public async Task<List<HubInfo>> GetSharedContentAsync(HubGetRequest request)
+        public async Task<List<HubInfo>> GetSharedContentAsync(HubSelectRequest request)
         {
             try
             {
@@ -179,7 +179,7 @@ namespace Q2gHelperQrs
             }
         }
 
-        public async Task<int> GetSharedContentCountAsync(HubGetCountRequest request)
+        public async Task<int> GetSharedContentCountAsync(HubSelectCountRequest request)
         {
             try
             {
@@ -230,11 +230,11 @@ namespace Q2gHelperQrs
             }
         }
 
-        private async Task<bool> DeleteAllSharedContentAsync()
+        public async Task<bool> DeleteAllSharedContentAsync()
         {
             try
             {
-                var sharedInfos = await GetSharedContentAsync(new HubGetRequest());
+                var sharedInfos = await GetSharedContentAsync(new HubSelectRequest());
                 foreach (var hubInfo in sharedInfos)
                     await DeleteSharedContentAsync(new HubDeleteRequest() { Id = hubInfo.Id.Value });
                 return true;
@@ -250,23 +250,9 @@ namespace Q2gHelperQrs
         {
             try
             {
-                var hubGetRequest = new HubGetRequest()
-                {
-                    Filter = HubGetRequest.GetIdFilter(request.Id),
-                };
-                var hubInfos = GetSharedContentAsync(hubGetRequest).Result;
-                var shareContent = hubInfos?.SingleOrDefault() ?? null;
-                if (shareContent == null)
-                {
-                    if (hubInfos.Count == 0)
-                        throw new Exception($"No shared content with id {request.Id} found.");
-                    else
-                        throw new Exception($"To many shared contents with id {request.Id} found.");
-                }
-
-                var newUri = new Uri(ConnectUri, $"/qrs/sharedcontent/{shareContent.Id.Value}");
+                var newUri = new Uri($"{SharedContentUri.OriginalString}/{request.Id}");
                 var result = await SendRequestAsync(newUri, HttpMethod.Delete, null, null);
-                return true;
+                return result != null;
             }
             catch (Exception ex)
             {
