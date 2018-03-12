@@ -27,6 +27,7 @@ namespace Q2gHelperQrs
     using System.Web;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading;
     #endregion
 
     public class QlikQrsHub
@@ -36,8 +37,9 @@ namespace Q2gHelperQrs
         #endregion
 
         #region Properties & Variables
-        public Uri ConnectUri { get; private set; }
-        public Cookie ConnectCookie { get; private set; }
+        private Uri ConnectUri = null;
+        private Cookie ConnectCookie = null;
+        private Uri SharedContentUri = null;
         #endregion
 
         #region Constructor
@@ -45,6 +47,7 @@ namespace Q2gHelperQrs
         {
             ConnectUri = connectUri;
             ConnectCookie = cookie;
+            SharedContentUri = new Uri(ConnectUri, $"{ConnectUri.AbsolutePath}/qrs/sharedcontent");
         }
         #endregion
 
@@ -72,396 +75,191 @@ namespace Q2gHelperQrs
                 query["orderby"] = orderby;
 
             uriBuilder.Query = query.ToString();
-
             return uriBuilder.Uri;
         }
 
-        private async Task<string> SendRequest(Uri requestUri, HttpMethod method, string contentType, byte[] data = null,
-                                   string filter = null, string orderby = null)
-        {
-            var key = GetRandomAlphanumericString(16);
-            var keyRelativeUri = BuildUriWithKey(requestUri, key, filter, orderby);
-            var connectionHandler = new HttpClientHandler();
-            connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
-            var httpClient = new HttpClient(connectionHandler) { BaseAddress = ConnectUri };
-            var request = new HttpRequestMessage(method, keyRelativeUri);
-            request.Headers.Add("X-Qlik-Xrfkey", key);
-            if (data != null)
-            {
-                request.Content = new ByteArrayContent(data);
-                request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-            }
-            var result = await httpClient.SendAsync(request);
-            if (result.IsSuccessStatusCode)
-                return await result.Content.ReadAsStringAsync();
-            else
-                return null;
-        }
-
-        private bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private async Task<string> SendRequestAsync(Uri requestUri, HttpMethod method, HubContentData data = null,
+                                                    string filter = null, string orderby = null)
         {
             try
             {
-                var date = DateTime.Parse(certificate.GetExpirationDateString());
-                var result = DateTime.Compare(date, DateTime.Now);
-                if (result > 0)
+                var key = GetRandomAlphanumericString(16);
+                var keyRelativeUri = BuildUriWithKey(requestUri, key, filter, orderby);
+                logger.Debug($"ConnectUri: {keyRelativeUri}");
+                var connectionHandler = new HttpClientHandler();
+                connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
+                var httpClient = new HttpClient(connectionHandler) { BaseAddress = ConnectUri };
+                var request = new HttpRequestMessage(method, keyRelativeUri);
+                request.Headers.Add("X-Qlik-Xrfkey", key);
+                if (data != null)
                 {
-                    var primaryCert = new X509Certificate2(certificate);
-                    return chain.Build(primaryCert);
+                    request.Content = new ByteArrayContent(data.FileData);
+                    request.Content.Headers.ContentType = new MediaTypeHeaderValue(data.ContentType);
                 }
 
-                return false;
+                var result = httpClient.SendAsync(request).Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    logger.Debug($"Response: {result.StatusCode} - {result.RequestMessage}");
+                    return await result.Content.ReadAsStringAsync();
+                }
+
+                return null;
             }
             catch (Exception ex)
             {
-                logger.Error(ex);
-                return false;
+                logger.Error(ex, $"The method \"{nameof(SendRequestAsync)}\" failed.");
+                return null;
             }
         }
 
-        private async Task<string> CreateOrUpdatePublishedReport(Uri address, HubInfo jsonRequest)
-        {
-            if (jsonRequest == null)
-                return null;
-
-            var httpMethod = HttpMethod.Post;
-            if (jsonRequest.Id != null)
-                httpMethod = HttpMethod.Put;
-
-            var settings = new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore
-            };
-
-            var jsonStr = JsonConvert.SerializeObject(jsonRequest, settings);
-            var data = Encoding.UTF8.GetBytes(jsonStr);
-            return await SendRequest(address, httpMethod, "application/json", data);
-        }
-
-        private async Task UploadFileInternal(HubInfo request)
+        private async Task<HubInfo> UploadFileInternalAsync(HubInfo request, HubContentData hubFileData, bool isUpdate = false)
         {
             try
             {
-                //Logging bei null
                 if (request == null)
-                    return;
-
-                string result = String.Empty;
-                Guid contentId = Guid.Empty;
-
-                if (request.InternalType == RequestType.CREATE)
                 {
-                    //Create Published Report
-                    var newUri = new Uri(ConnectUri, "/qrs/sharedcontent");
-                    result = await CreateOrUpdatePublishedReport(newUri, request);
-                    var hubInfo = JsonConvert.DeserializeObject<HubInfo>(result);
-                    contentId = hubInfo.Id.Value;
-                }
-                else if (request.InternalType == RequestType.UPDATE)
-                {
-                    //Update Published Report
-                    //-->>Logging bei mehreren Dokumenten mit dem selben Namen //Warnung
-                    contentId = request.Id.Value;
-                    var newUri = new Uri(ConnectUri, $"/qrs/sharedcontent/{contentId}");
-                    await CreateOrUpdatePublishedReport(newUri, request);
+                    logger.Debug($"The request is null.");
+                    return null;
                 }
 
-                if (!String.IsNullOrEmpty(request.FullPath))
+                logger.Debug($"Upload type {request.Type}");
+                var httpMethod = HttpMethod.Post;
+                var uriString = SharedContentUri;
+                if (isUpdate == true)
                 {
-                    //Upload File
-                    var fileData = File.ReadAllBytes(request.FullPath);
-                    var contentType = $"application/{Path.GetExtension(request.FullPath).TrimStart('.')}";
-                    var path = Path.GetFileName(request.FullPath);
-                    var newUploadUri = new Uri(ConnectUri, $"/qrs/sharedcontent/{contentId}/uploadfile?externalpath={path}");
-                    result = await SendRequest(newUploadUri, HttpMethod.Post, contentType, fileData);
+                    httpMethod = HttpMethod.Put;
+                    uriString = new Uri($"{SharedContentUri.OriginalString}/{request.Id.Value}");
                 }
+
+                var settings = new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+                var jsonStr = JsonConvert.SerializeObject(request, settings);
+                var data = Encoding.UTF8.GetBytes(jsonStr);
+                var result = await SendRequestAsync(uriString, httpMethod,
+                                                    new HubContentData() { ContentType = "application/json", FileData = data });
+                var hubInfo = JsonConvert.DeserializeObject<HubInfo>(result);
+
+                //Upload File
+                if (hubFileData != null)
+                {
+                    logger.Debug("Upload content data.");
+                    var newUploadUri = new Uri($"{uriString}/uploadfile?externalpath={hubFileData.ExternalPath}");
+                    result = await SendRequestAsync(newUploadUri, HttpMethod.Post, hubFileData);
+                }
+                else
+                    logger.Debug("The content data is empty.");
+
+                return hubInfo;
             }
             catch (Exception ex)
             {
-                throw new Exception("The file upload to the hub is failed.", ex);
+                logger.Error(ex, "File upload was failed.");
+                return null;
             }
         }
         #endregion
 
         #region Public Methods
-        public async Task<HubInfo> GetFirstSharedContent(string contentName)
+        public async Task<List<HubInfo>> GetSharedContentAsync(HubSelectRequest request)
         {
             try
             {
-                var result = await GetAllSharedContent($"Name eq '{contentName}'");
-                return result.FirstOrDefault() ?? null;
+                var newUri = new Uri($"{SharedContentUri.OriginalString}/full");
+                var result = await SendRequestAsync(newUri, HttpMethod.Get, null, request.Filter, request.OrderBy);
+                return JsonConvert.DeserializeObject<List<HubInfo>>(result);
             }
             catch (Exception ex)
             {
-                throw new Exception("The content could not be determined.", ex);
+                logger.Error(ex, $"The method \"{nameof(GetSharedContentAsync)}\" failed.");
+                return null;
             }
         }
 
-        public async Task<HubInfo> GetSharedContent(Guid sharedId)
+        public async Task<int> GetSharedContentCountAsync(HubSelectCountRequest request)
         {
             try
             {
-                var result = await GetAllSharedContent($"Id eq {sharedId.ToString()}");
-                return result.SingleOrDefault() ?? null;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("The content could not be determined.", ex);
-            }
-        }
-
-        public async Task<int> GetSharedContentCount(string filter = null)
-        {
-            try
-            {
-                var newUri = new Uri(ConnectUri, "/qrs/sharedcontent/count");
-                var result = await SendRequest(newUri, HttpMethod.Get, "application/json", null, filter);
+                var newUri = new Uri($"{SharedContentUri.OriginalString}/count");
+                var result = await SendRequestAsync(newUri, HttpMethod.Get, null, request.Filter);
                 var count = JsonConvert.DeserializeObject<JToken>(result).Value<int>("value");
                 logger.Debug($"SharedContentCount: {count}");
                 return count;
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"The method \"{nameof(GetSharedContentCount)}\" failed.");
-                return 0;
+                logger.Error(ex, $"The method \"{nameof(GetSharedContentCountAsync)}\" failed.");
+                return -1;
             }
         }
 
-        public async Task<List<HubInfo>> GetAllSharedContent(string filter = null, string orderby = null)
+        public async Task<HubInfo> CreateSharedContentAsync(HubCreateRequest request)
         {
             try
             {
-                var newUri = new Uri(ConnectUri, "/qrs/sharedcontent/full");
-                var result = await SendRequest(newUri, HttpMethod.Get, "application/json", null, filter, orderby);
-                return JsonConvert.DeserializeObject<List<HubInfo>>(result);
+                var hubInfo = new HubInfo()
+                {
+                    Type = "Qlik report",
+                    Description = request.Description,
+                    Name = request.Name,
+                };
+
+                return await UploadFileInternalAsync(hubInfo, request.Data);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"The method \"{nameof(GetAllSharedContent)}\" failed.");
+                logger.Error(ex, $"The method \"{nameof(CreateSharedContentAsync)}\" with hub info failed.");
                 return null;
             }
         }
 
-        public async Task<bool> DeleteAll()
+        public async Task<HubInfo> UpdateSharedContentAsync(HubUpdateRequest updateRequest)
         {
             try
             {
-                var sharedInfos = await GetAllSharedContent();
-                foreach (var sharedInfo in sharedInfos)
-                    await Delete(sharedInfo.Id.Value);
+                updateRequest.Info.CreatedDate = updateRequest.Info.ModifiedDate;
+                return await UploadFileInternalAsync(updateRequest.Info, updateRequest.Data, true);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"The method \"{nameof(UpdateSharedContentAsync)}\" with hub info failed.");
+                return null;
+            }
+        }
+
+        public async Task<bool> DeleteAllSharedContentAsync()
+        {
+            try
+            {
+                var sharedInfos = await GetSharedContentAsync(new HubSelectRequest());
+                foreach (var hubInfo in sharedInfos)
+                    await DeleteSharedContentAsync(new HubDeleteRequest() { Id = hubInfo.Id.Value });
                 return true;
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"The method \"{nameof(DeleteAll)}\" failed.");
+                logger.Error(ex, $"The method \"{nameof(DeleteAllSharedContentAsync)}\" failed.");
                 return false;
             }
         }
 
-        public async Task<bool> Delete(string contentName)
+        public async Task<bool> DeleteSharedContentAsync(HubDeleteRequest request)
         {
             try
             {
-                var firstHubInfo = await GetFirstSharedContent(contentName);
-                var newUri = new Uri(ConnectUri, $"/qrs/sharedcontent/{firstHubInfo.Id.Value}");
-                var result = await SendRequest(newUri, HttpMethod.Delete, null, null);
-                return true;
+                var newUri = new Uri($"{SharedContentUri.OriginalString}/{request.Id}");
+                var result = await SendRequestAsync(newUri, HttpMethod.Delete, null, null);
+                return result != null;
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"The method \"{nameof(Delete)}\" with content name failed.");
-                return false;
-            }
-        }
-
-        public async Task<bool> Delete(Guid id)
-        {
-            try
-            {
-                var newUri = new Uri(ConnectUri, $"/qrs/sharedcontent/{id}");
-                var result = await SendRequest(newUri, HttpMethod.Delete, null, null);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"The method \"{nameof(Delete)}\" with id failed.");
-                return false;
-            }
-        }
-
-        public async Task<bool> Create(string contentName, string fullpath, string description = null)
-        {
-            try
-            {
-                var createRequest = new HubInfo
-                {
-                    InternalType = RequestType.CREATE,
-                    Description = description,
-                    Name = contentName,
-                    Type = "Qlik report",
-                    FullPath = fullpath
-                };
-
-                if (!File.Exists(fullpath))
-                    throw new Exception($"The file {fullpath} not exists.");
-
-                await UploadFileInternal(createRequest);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"The method \"{nameof(Create)}\" with id failed.");
-                return false;
-            }
-        }
-
-        public async Task<bool> Create(HubInfo createRequest)
-        {
-            try
-            {
-                if (!File.Exists(createRequest.FullPath))
-                    throw new Exception($"The file {createRequest.FullPath} not exists.");
-
-                createRequest.InternalType = RequestType.CREATE;
-                await UploadFileInternal(createRequest);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"The method \"{nameof(Create)}\" with hub info failed.");
-                return false;
-            }
-        }
-
-        public async Task<bool> Update(string contentName, string fullpath = null, string newContentName = null, string description = null)
-        {
-            try
-            {
-                var updateRequest = await GetFirstSharedContent(contentName);
-                if (updateRequest == null)
-                    throw new Exception($"The content name {contentName} was not found.");
-
-                updateRequest.FullPath = fullpath;
-                updateRequest.NewContentName = newContentName;
-                updateRequest.Description = description;
-                updateRequest.References.Clear();
-                return await Update(updateRequest);
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"The method \"{nameof(Update)}\" failed.");
-                return false;
-            }
-        }
-
-        public async Task<bool> Update(Guid sharedId, string fullpath = null, string newContentName = null, string description = null)
-        {
-            try
-            {
-                var updateRequest = await GetSharedContent(sharedId);
-                if (updateRequest == null)
-                    throw new Exception($"The content id {sharedId} was not found.");
-
-                updateRequest.FullPath = fullpath;
-                updateRequest.NewContentName = newContentName;
-                updateRequest.Description = description;
-                return await Update(updateRequest);
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"The method \"{nameof(Update)}\" with shared id failed.");
-                return false;
-            }
-        }
-
-        public async Task<bool> Update(HubInfo updateRequest)
-        {
-            try
-            {
-                updateRequest.InternalType = RequestType.UPDATE;
-                updateRequest.CreatedDate = updateRequest.ModifiedDate;
-                await UploadFileInternal(updateRequest);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"The method \"{nameof(Update)}\" with hub info failed.");
+                logger.Error(ex, $"The method \"{nameof(DeleteSharedContentAsync)}\" with content name failed.");
                 return false;
             }
         }
         #endregion
     }
-
-    #region Json Communication Classes
-    public class HubOwer
-    {
-        public Guid? Id { get; set; }
-        public string UserId { get; set; }
-        public string UserDirectory { get; set; }
-        public string Name { get; set; }
-        public List<string> Privileges { get; set; }
-
-        public override string ToString()
-        {
-            return Name;
-        }
-    }
-
-    public class HubReferences
-    {
-        public Guid? Id { get; set; }
-        public string DataLocation { get; set; }
-        public string LogicalPath { get; set; }
-        public string ExternalPath { get; set; }
-        public int ServeOptions { get; set; }
-        public List<string> Privileges { get; set; }
-
-        public override string ToString()
-        {
-            return Id?.ToString();
-        }
-    }
-
-    public enum RequestType
-    {
-        CREATE,
-        UPDATE,
-        DELETE
-    }
-
-    public class HubInfo
-    {
-        [JsonIgnore]
-        public RequestType InternalType { get; set; }
-
-        [JsonIgnore]
-        public string FullPath { get; set; }
-
-        [JsonIgnore]
-        public string NewContentName { get; set; }
-
-        public Guid? Id { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public DateTime? ModifiedDate { get; set; }
-        public string ModifiedByUserName { get; set; }
-        public List<string> CustomProperties { get; set; }
-        public HubOwer Owner { get; set; }
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public string Description { get; set; }
-        public Uri Uri { get; set; }
-        public List<string> Tags { get; set; }
-        public List<HubReferences> References { get; set; }
-        public List<string> MetaData { get; set; }
-        public List<string> Privileges { get; set; }
-        public bool? ImpactSecurityAccess { get; set; }
-        public string SchemaPath { get; set; }
-
-        public override string ToString()
-        {
-            return Id?.ToString();
-        }
-    }
-    #endregion
 }
