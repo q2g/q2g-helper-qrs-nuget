@@ -147,7 +147,7 @@ namespace Q2gHelperQrs
                 if (hubFileData != null)
                 {
                     logger.Debug("Upload content data.");
-                    var newUploadUri = new Uri($"{uriString}/uploadfile?externalpath={hubFileData.ExternalPath}");
+                    var newUploadUri = new Uri($"{uriString}/{hubInfo.Id}/uploadfile?externalpath={hubFileData.ExternalPath}");
                     result = await SendRequestAsync(newUploadUri, HttpMethod.Post, hubFileData);
                 }
                 else
