@@ -78,7 +78,7 @@ namespace Q2gHelperQrs
             return uriBuilder.Uri;
         }
 
-        private async Task<string> SendRequestAsync(Uri requestUri, HttpMethod method, HubContentData data = null,
+        public async Task<string> SendRequestAsync(Uri requestUri, HttpMethod method, HubContentData data = null,
                                                     string filter = null, string orderby = null)
         {
             try
@@ -261,19 +261,6 @@ namespace Q2gHelperQrs
             {
                 logger.Error(ex, $"The method \"{nameof(DeleteSharedContentAsync)}\" with content name failed.");
                 return false;
-            }
-        }
-         
-        public async Task<string> GetAppContent(Uri uri)
-        {
-            try
-            {
-                return await SendRequestAsync(uri, HttpMethod.Get, null, null);
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"The method \"{nameof(GetAppContent)}\" failed.");
-                return null;
             }
         }
         #endregion
