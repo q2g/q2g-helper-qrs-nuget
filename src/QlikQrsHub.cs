@@ -78,7 +78,7 @@ namespace Q2gHelperQrs
             return uriBuilder.Uri;
         }
 
-        private async Task<string> SendRequestAsync(Uri requestUri, HttpMethod method, HubContentData data = null,
+        public async Task<string> SendRequestAsync(Uri requestUri, HttpMethod method, HubContentData data = null,
                                                     string filter = null, string orderby = null)
         {
             try
