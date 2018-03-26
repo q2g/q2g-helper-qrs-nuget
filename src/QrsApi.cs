@@ -74,7 +74,7 @@
     #endregion
 
     #region Client Request Classes
-    public class HubContentData
+    public class ContentData
     {
         public string ContentType { get; set; }
         public byte[] FileData { get; set; }
@@ -90,14 +90,14 @@
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public HubContentData Data { get; set; }
+        public ContentData Data { get; set; }
         public RequestType Type => RequestType.CREATE;
     }
 
     public class HubUpdateRequest : IHubRequest
     {
         public HubInfo Info { get; set; }
-        public HubContentData Data { get; set; }
+        public ContentData Data { get; set; }
         public RequestType Type => RequestType.UPDATE;
     }
 

@@ -78,7 +78,7 @@ namespace Q2gHelperQrs
             return uriBuilder.Uri;
         }
 
-        public async Task<string> SendRequestAsync(Uri requestUri, HttpMethod method, HubContentData data = null,
+        public async Task<string> SendRequestAsync(Uri requestUri, HttpMethod method, ContentData data = null,
                                                     string filter = null, string orderby = null)
         {
             try
@@ -113,7 +113,7 @@ namespace Q2gHelperQrs
             }
         }
 
-        private async Task<HubInfo> UploadFileInternalAsync(HubInfo request, HubContentData hubFileData, bool isUpdate = false)
+        private async Task<HubInfo> UploadFileInternalAsync(HubInfo request, ContentData hubFileData, bool isUpdate = false)
         {
             try
             {
@@ -140,7 +140,7 @@ namespace Q2gHelperQrs
                 var jsonStr = JsonConvert.SerializeObject(request, settings);
                 var data = Encoding.UTF8.GetBytes(jsonStr);
                 var result = await SendRequestAsync(uriString, httpMethod,
-                                                    new HubContentData() { ContentType = "application/json", FileData = data });
+                                                    new ContentData() { ContentType = "application/json", FileData = data });
                 var hubInfo = JsonConvert.DeserializeObject<HubInfo>(result);
 
                 //Upload File
