@@ -263,6 +263,19 @@ namespace Q2gHelperQrs
                 return false;
             }
         }
+         
+        public async Task<string> GetAppContent(Uri uri)
+        {
+            try
+            {
+                return await SendRequestAsync(uri, HttpMethod.Get, null, null);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"The method \"{nameof(GetAppContent)}\" failed.");
+                return null;
+            }
+        }
         #endregion
     }
 }
