@@ -90,7 +90,6 @@
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public HubOwer Owner { get; set; }
         public ContentData Data { get; set; }
         public RequestType Type => RequestType.CREATE;
     }
