@@ -103,6 +103,10 @@ namespace Q2gHelperQrs
                     logger.Debug($"Response: {result.StatusCode} - {result.RequestMessage}");
                     return await result.Content.ReadAsStringAsync();
                 }
+                else
+                {
+                    logger.Error($"Send request failed {result.StatusCode} {result.ReasonPhrase}");
+                }
 
                 return null;
             }
