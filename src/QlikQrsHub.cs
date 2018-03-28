@@ -148,7 +148,7 @@ namespace Q2gHelperQrs
                 {
                     logger.Debug("Upload content data.");
                     if(isUpdate == false)
-                        uriString = new Uri($"{SharedContentUri.OriginalString}/{request.Id.Value}");
+                        uriString = new Uri($"{SharedContentUri.OriginalString}/{hubInfo.Id.Value}");
 
                     var newUploadUri = new Uri($"{uriString}/uploadfile?externalpath={hubFileData.ExternalPath}");
                     result = await SendRequestAsync(newUploadUri, HttpMethod.Post, hubFileData);
@@ -223,7 +223,7 @@ namespace Q2gHelperQrs
         {
             try
             {
-                updateRequest.Info.CreatedDate = updateRequest.Info.ModifiedDate;
+                updateRequest.Info.ModifiedDate = DateTime.Now;
                 return await UploadFileInternalAsync(updateRequest.Info, updateRequest.Data, true);
             }
             catch (Exception ex)
