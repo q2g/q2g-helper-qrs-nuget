@@ -11,10 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
-    <PackageReference Include="NLog" Version="4.5.0-rc06" />
-    <PackageReference Include="Q2gHelperPem" Version="1.0.1" />
-    <PackageReference Include="SerApi" Version="1.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="NLog" Version="4.5.0" />
+    <PackageReference Include="Q2gHelperPem" Version="1.0.2" />
+    <PackageReference Include="SerApi" Version="1.0.5" />
   </ItemGroup>
 
 </Project>
