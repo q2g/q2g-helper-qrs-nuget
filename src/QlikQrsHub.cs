@@ -14,7 +14,6 @@ namespace Q2gHelperQrs
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Serialization;
     using NLog;
-    using SerApi;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -40,6 +39,8 @@ namespace Q2gHelperQrs
         private Uri ConnectUri = null;
         private Cookie ConnectCookie = null;
         private Uri SharedContentUri = null;
+       
+        public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateValidationCallback { get; set; }
         #endregion
 
         #region Constructor
@@ -88,6 +89,18 @@ namespace Q2gHelperQrs
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
                 connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
+
+                if (this.ServerCertificateValidationCallback != null)
+                    connectionHandler.ServerCertificateCustomValidationCallback = ServerCertificateValidationCallback;
+                else
+                    connectionHandler.ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
+                    {
+                        var callback = ServicePointManager.ServerCertificateValidationCallback;
+                        if (callback != null)
+                            return callback(sender, certificate, chain, sslPolicyErrors);
+                        return false;
+                    };
+
                 var httpClient = new HttpClient(connectionHandler) { BaseAddress = ConnectUri };
                 var request = new HttpRequestMessage(method, keyRelativeUri);
                 request.Headers.Add("X-Qlik-Xrfkey", key);
