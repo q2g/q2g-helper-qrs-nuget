@@ -37,8 +37,7 @@ namespace Q2gHelperQrs
 
         #region Properties & Variables
         private Uri ConnectUri = null;
-        private Cookie ConnectCookie = null;
-        private Uri SharedContentUri = null;
+        private Cookie ConnectCookie = null;        
        
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateValidationCallback { get; set; }
         #endregion
@@ -48,7 +47,6 @@ namespace Q2gHelperQrs
         {
             ConnectUri = connectUri;
             ConnectCookie = cookie;
-            SharedContentUri = new Uri(ConnectUri, $"{ConnectUri.AbsolutePath}/qrs/sharedcontent");
         }
         #endregion
 
@@ -63,9 +61,11 @@ namespace Q2gHelperQrs
             return result;
         }
 
-        private Uri BuildUriWithKey(Uri uri, string key, string filter, string orderby)
+        private Uri BuildUriWithKey(string requestPath, string key, string filter, string orderby)
         {
-            var uriBuilder = new UriBuilder(uri);
+            var uriBuilder = new UriBuilder(ConnectUri);
+            uriBuilder.Path += "qrs/"+requestPath;
+
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query["Xrfkey"] = key;
 
@@ -79,13 +79,69 @@ namespace Q2gHelperQrs
             return uriBuilder.Uri;
         }
 
-        public async Task<string> SendRequestAsync(Uri requestUri, HttpMethod method, ContentData data = null,
+        private async Task<HubInfo> UploadFileInternalAsync(HubInfo request, ContentData hubFileData, bool isUpdate = false)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    logger.Debug($"The request is null.");
+                    return null;
+                }
+
+                logger.Debug($"Upload type {request.Type}");
+                var httpMethod = HttpMethod.Post;
+                var requestString = "";
+                if (isUpdate == true)
+                {
+                    httpMethod = HttpMethod.Put;
+                    requestString = $"sharedcontent/{request.Id.Value}";
+                }
+
+                var settings = new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+                var jsonStr = JsonConvert.SerializeObject(request, settings);
+                var data = Encoding.UTF8.GetBytes(jsonStr);
+                var result = await SendRequestAsync(requestString, httpMethod,
+                                                    new ContentData() { ContentType = "application/json", FileData = data });
+                var hubInfo = JsonConvert.DeserializeObject<HubInfo>(result);
+
+                //Upload File
+                if (hubFileData != null)
+                {
+                    requestString = "sharedcontent/"; ;
+                    logger.Debug("Upload content data.");
+                    if (isUpdate == false)
+                        requestString = $"sharedcontent/{hubInfo.Id.Value}";
+
+                    requestString = $"{requestString}uploadfile?externalpath={hubFileData.ExternalPath}";
+                    result = await SendRequestAsync(requestString, HttpMethod.Post, hubFileData);
+                }
+                else
+                    logger.Debug("The content data is empty.");
+
+                return hubInfo;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "File upload was failed.");
+                return null;
+            }
+        }
+        #endregion
+
+        #region Public Methods
+        public async Task<string> SendRequestAsync(string requestPath, HttpMethod method, ContentData data = null,
                                                     string filter = null, string orderby = null)
         {
             try
             {
+
                 var key = GetRandomAlphanumericString(16);
-                var keyRelativeUri = BuildUriWithKey(requestUri, key, filter, orderby);
+                var keyRelativeUri = BuildUriWithKey(requestPath, key, filter, orderby);
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
                 connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
@@ -130,66 +186,11 @@ namespace Q2gHelperQrs
             }
         }
 
-        private async Task<HubInfo> UploadFileInternalAsync(HubInfo request, ContentData hubFileData, bool isUpdate = false)
-        {
-            try
-            {
-                if (request == null)
-                {
-                    logger.Debug($"The request is null.");
-                    return null;
-                }
-
-                logger.Debug($"Upload type {request.Type}");
-                var httpMethod = HttpMethod.Post;
-                var uriString = SharedContentUri;
-                if (isUpdate == true)
-                {
-                    httpMethod = HttpMethod.Put;
-                    uriString = new Uri($"{SharedContentUri.OriginalString}/{request.Id.Value}");
-                }
-
-                var settings = new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    NullValueHandling = NullValueHandling.Ignore
-                };
-                var jsonStr = JsonConvert.SerializeObject(request, settings);
-                var data = Encoding.UTF8.GetBytes(jsonStr);
-                var result = await SendRequestAsync(uriString, httpMethod,
-                                                    new ContentData() { ContentType = "application/json", FileData = data });
-                var hubInfo = JsonConvert.DeserializeObject<HubInfo>(result);
-
-                //Upload File
-                if (hubFileData != null)
-                {
-                    logger.Debug("Upload content data.");
-                    if(isUpdate == false)
-                        uriString = new Uri($"{SharedContentUri.OriginalString}/{hubInfo.Id.Value}");
-
-                    var newUploadUri = new Uri($"{uriString}/uploadfile?externalpath={hubFileData.ExternalPath}");
-                    result = await SendRequestAsync(newUploadUri, HttpMethod.Post, hubFileData);
-                }
-                else
-                    logger.Debug("The content data is empty.");
-
-                return hubInfo;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "File upload was failed.");
-                return null;
-            }
-        }
-        #endregion
-
-        #region Public Methods
         public async Task<List<HubInfo>> GetSharedContentAsync(HubSelectRequest request)
         {
             try
-            {
-                var newUri = new Uri($"{SharedContentUri.OriginalString}/full");
-                var result = await SendRequestAsync(newUri, HttpMethod.Get, null, request.Filter, request.OrderBy);
+            {                
+                var result = await SendRequestAsync("sharedcontent/full", HttpMethod.Get, null, request.Filter, request.OrderBy);
                 return JsonConvert.DeserializeObject<List<HubInfo>>(result);
             }
             catch (Exception ex)
@@ -202,9 +203,8 @@ namespace Q2gHelperQrs
         public async Task<int> GetSharedContentCountAsync(HubSelectCountRequest request)
         {
             try
-            {
-                var newUri = new Uri($"{SharedContentUri.OriginalString}/count");
-                var result = await SendRequestAsync(newUri, HttpMethod.Get, null, request.Filter);
+            {                
+                var result = await SendRequestAsync("sharedcontent/count", HttpMethod.Get, null, request.Filter);
                 var count = JsonConvert.DeserializeObject<JToken>(result).Value<int>("value");
                 logger.Debug($"SharedContentCount: {count}");
                 return count;
@@ -269,9 +269,8 @@ namespace Q2gHelperQrs
         public async Task<bool> DeleteSharedContentAsync(HubDeleteRequest request)
         {
             try
-            {
-                var newUri = new Uri($"{SharedContentUri.OriginalString}/{request.Id}");
-                var result = await SendRequestAsync(newUri, HttpMethod.Delete, null, null);
+            {                
+                var result = await SendRequestAsync($"sharedcontent/{request.Id}", HttpMethod.Delete, null, null);
                 return result != null;
             }
             catch (Exception ex)
