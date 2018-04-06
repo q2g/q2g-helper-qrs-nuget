@@ -16,4 +16,19 @@
     <PackageReference Include="Q2gHelperPem" Version="1.0.2" />
   </ItemGroup>
 
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Release'">
+      <ItemGroup>    
+        <PackageReference Include="Q2gHelperPem" Version="1.0.2" />        
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <Reference Include="Q2gHelperPem">
+          <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Debug\netcoreapp2.0\Q2gHelperPem.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
 </Project>
