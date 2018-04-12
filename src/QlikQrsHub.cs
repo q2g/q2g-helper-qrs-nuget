@@ -126,14 +126,13 @@ namespace Q2g.HelperQrs
         #endregion
 
         #region Public Methods
-        public async Task<string> SendRequestAsync(string requestPath, HttpMethod method, ContentData data = null,
+        public async Task<string> SendRequestAsync(string pathAndQuery, HttpMethod method, ContentData data = null,
                                                     string filter = null, string orderby = null)
         {
             try
             {
-
                 var key = GetRandomAlphanumericString(16);
-                var keyRelativeUri = BuildUriWithKey(requestPath, key, filter, orderby);
+                var keyRelativeUri = BuildUriWithKey(pathAndQuery, key, filter, orderby);
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
                 connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
