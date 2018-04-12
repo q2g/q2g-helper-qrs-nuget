@@ -61,15 +61,9 @@ namespace Q2g.HelperQrs
             return result;
         }
 
-        private Uri BuildUriWithKey(string requestPath, string key, string filter, string orderby)
+        private Uri BuildUriWithKey(string pathAndQuery, string key, string filter, string orderby)
         {
-            var uriBuilder = new UriBuilder(ConnectUri);
-            var querySplit = requestPath.Split('?');
-            uriBuilder.Path += $"/qrs/{querySplit[0]}";
-
-            if (querySplit.Length == 2)
-                uriBuilder.Query = querySplit[1];
-
+            var uriBuilder = new UriBuilder($"{ConnectUri}/qrs/{pathAndQuery}");                      
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query["Xrfkey"] = key;
 
@@ -99,16 +93,10 @@ namespace Q2g.HelperQrs
                 if (isUpdate == true)
                 {
                     httpMethod = HttpMethod.Put;
-                    requestString = $"sharedcontent/{request.Id.Value}";
+                    requestString += $"/{request.Id.Value}";
                 }
 
-                var settings = new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    NullValueHandling = NullValueHandling.Ignore,
-                    Formatting = Formatting.Indented,
-                };
-                var jsonStr = JsonConvert.SerializeObject(request, settings);
+                var jsonStr = JsonConvert.SerializeObject(request);
                 var data = Encoding.UTF8.GetBytes(jsonStr);
                 var result = await SendRequestAsync(requestString, httpMethod,
                                                     new ContentData() { ContentType = "application/json", FileData = data });
@@ -119,7 +107,7 @@ namespace Q2g.HelperQrs
                 {
                     logger.Debug("Upload content data.");
                     if (isUpdate == false)
-                        requestString = $"sharedcontent/{hubInfo.Id.Value}";
+                        requestString += $"/{hubInfo.Id.Value}";
 
                     requestString = $"{requestString}/uploadfile?externalpath={hubFileData.ExternalPath}";
                     result = await SendRequestAsync(requestString, HttpMethod.Post, hubFileData);

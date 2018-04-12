@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XUnitQrsTest", "XUnitQrsTest\XUnitQrsTest.csproj", "{EDE49C3F-3534-4071-8120-91ABD61D21C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QrsTest", "QrsTest\QrsTest.csproj", "{EDE49C3F-3534-4071-8120-91ABD61D21C2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q2gHelperQrs", "..\..\src\Q2gHelperQrs.csproj", "{935005DB-7240-4EA3-BC9A-2C9A60A9AB5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Q2gHelperQrs", "..\src\Q2gHelperQrs.csproj", "{935005DB-7240-4EA3-BC9A-2C9A60A9AB5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

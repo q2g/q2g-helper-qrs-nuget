@@ -8,27 +8,46 @@ namespace XUnitQrsTest
     using System.Net.Security;
     using System.Security.Cryptography.X509Certificates;
     using Xunit;
-    using XUnitQrsTest.Properties;
+    using QrsTest.Properties;
+    using Hjson;
+    using Newtonsoft.Json;
     #endregion
 
-    public class QrsTest
+    public class TestConfig
     {
+        public Uri Server { get; set; }
+        public string cookieName { get; set; }
+        public string cookieValue { get; set; }
+    }
+
+    public class QrsTestClass
+    {
+        private TestConfig GetTestConfig()
+        {
+            try
+            {
+                var configPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\config.hjson"));
+                var json = HjsonValue.Load(configPath).ToString();
+                return JsonConvert.DeserializeObject<TestConfig>(json);
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
+        }
+
         private QlikQrsHub GetHubConnection()
         {
-            //change connection information here.
-            //for example use postman to generate a cookie
-            //this test use a configured jwt session with qlik sense server
-            //https://localhost/ser/sense/app
-            var uri = new Uri("https://localhost/ser");
-            var cookie = new Cookie("X-Qlik-Session-ser", "31154527-1739-4bf1-bff5-9e107d076f13");
-
+            var config = GetTestConfig();
+           
+            //to allow ssl certificates
             ServicePointManager.ServerCertificateValidationCallback = delegate(
             Object obj, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
             {
                 return true;
             };
-
-            return new QlikQrsHub(uri, cookie);
+            
+            return new QlikQrsHub(config.Server, new Cookie(config.cookieName, config.cookieValue));
         }
 
         [Fact(DisplayName = "Create Shared Content")]
