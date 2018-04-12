@@ -1,4 +1,4 @@
-﻿namespace Q2gHelperQrs
+﻿namespace Q2g.HelperQrs
 {
     #region Usings
     using Newtonsoft.Json;

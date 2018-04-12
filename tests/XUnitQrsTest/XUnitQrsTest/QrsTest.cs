@@ -1,7 +1,7 @@
 namespace XUnitQrsTest
 {
     #region Usings
-    using Q2gHelperQrs;
+    using Q2g.HelperQrs;
     using System;
     using System.IO;
     using System.Net;
