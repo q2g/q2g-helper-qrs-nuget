@@ -31,7 +31,7 @@
 
         public override string ToString()
         {
-            return Name;
+            return $"{UserDirectory.ToLowerInvariant()}\\{UserId.ToLowerInvariant()}";
         }
     }
 
