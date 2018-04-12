@@ -89,16 +89,16 @@ namespace Q2g.HelperQrs
 
                 logger.Debug($"Upload type {request.Type}");
                 var httpMethod = HttpMethod.Post;
-                var requestString = "sharedcontent";
+                var pathAndQuery = "sharedcontent";
                 if (isUpdate == true)
                 {
                     httpMethod = HttpMethod.Put;
-                    requestString += $"/{request.Id.Value}";
+                    pathAndQuery += $"/{request.Id.Value}";
                 }
 
                 var jsonStr = JsonConvert.SerializeObject(request);
                 var data = Encoding.UTF8.GetBytes(jsonStr);
-                var result = await SendRequestAsync(requestString, httpMethod,
+                var result = await SendRequestAsync(pathAndQuery, httpMethod,
                                                     new ContentData() { ContentType = "application/json", FileData = data });
                 var hubInfo = JsonConvert.DeserializeObject<HubInfo>(result);
 
@@ -107,10 +107,10 @@ namespace Q2g.HelperQrs
                 {
                     logger.Debug("Upload content data.");
                     if (isUpdate == false)
-                        requestString += $"/{hubInfo.Id.Value}";
+                        pathAndQuery += $"/{hubInfo.Id.Value}";
 
-                    requestString = $"{requestString}/uploadfile?externalpath={hubFileData.ExternalPath}";
-                    result = await SendRequestAsync(requestString, HttpMethod.Post, hubFileData);
+                    pathAndQuery = $"{pathAndQuery}/uploadfile?externalpath={hubFileData.ExternalPath}";
+                    result = await SendRequestAsync(pathAndQuery, HttpMethod.Post, hubFileData);
                 }
                 else
                     logger.Debug("The content data is empty.");
