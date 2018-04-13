@@ -7,7 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  */
 #endregion
 
-namespace Q2gHelperQrs
+namespace Q2g.HelperQrs
 {
     #region Usings
     using Newtonsoft.Json;
@@ -61,11 +61,9 @@ namespace Q2gHelperQrs
             return result;
         }
 
-        private Uri BuildUriWithKey(string requestPath, string key, string filter, string orderby)
+        private Uri BuildUriWithKey(string pathAndQuery, string key, string filter, string orderby)
         {
-            var uriBuilder = new UriBuilder(ConnectUri);
-            uriBuilder.Path += "qrs/"+requestPath;
-
+            var uriBuilder = new UriBuilder($"{ConnectUri}/qrs/{pathAndQuery}");                      
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query["Xrfkey"] = key;
 
@@ -91,34 +89,28 @@ namespace Q2gHelperQrs
 
                 logger.Debug($"Upload type {request.Type}");
                 var httpMethod = HttpMethod.Post;
-                var requestString = "";
+                var pathAndQuery = "sharedcontent";
                 if (isUpdate == true)
                 {
                     httpMethod = HttpMethod.Put;
-                    requestString = $"sharedcontent/{request.Id.Value}";
+                    pathAndQuery += $"/{request.Id.Value}";
                 }
 
-                var settings = new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    NullValueHandling = NullValueHandling.Ignore
-                };
-                var jsonStr = JsonConvert.SerializeObject(request, settings);
+                var jsonStr = JsonConvert.SerializeObject(request);
                 var data = Encoding.UTF8.GetBytes(jsonStr);
-                var result = await SendRequestAsync(requestString, httpMethod,
+                var result = await SendRequestAsync(pathAndQuery, httpMethod,
                                                     new ContentData() { ContentType = "application/json", FileData = data });
                 var hubInfo = JsonConvert.DeserializeObject<HubInfo>(result);
 
                 //Upload File
                 if (hubFileData != null)
                 {
-                    requestString = "sharedcontent/"; ;
                     logger.Debug("Upload content data.");
                     if (isUpdate == false)
-                        requestString = $"sharedcontent/{hubInfo.Id.Value}";
+                        pathAndQuery += $"/{hubInfo.Id.Value}";
 
-                    requestString = $"{requestString}uploadfile?externalpath={hubFileData.ExternalPath}";
-                    result = await SendRequestAsync(requestString, HttpMethod.Post, hubFileData);
+                    pathAndQuery = $"{pathAndQuery}/uploadfile?externalpath={hubFileData.ExternalPath}";
+                    result = await SendRequestAsync(pathAndQuery, HttpMethod.Post, hubFileData);
                 }
                 else
                     logger.Debug("The content data is empty.");
@@ -134,14 +126,13 @@ namespace Q2gHelperQrs
         #endregion
 
         #region Public Methods
-        public async Task<string> SendRequestAsync(string requestPath, HttpMethod method, ContentData data = null,
+        public async Task<string> SendRequestAsync(string pathAndQuery, HttpMethod method, ContentData data = null,
                                                     string filter = null, string orderby = null)
         {
             try
             {
-
                 var key = GetRandomAlphanumericString(16);
-                var keyRelativeUri = BuildUriWithKey(requestPath, key, filter, orderby);
+                var keyRelativeUri = BuildUriWithKey(pathAndQuery, key, filter, orderby);
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
                 connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
@@ -186,10 +177,13 @@ namespace Q2gHelperQrs
             }
         }
 
-        public async Task<List<HubInfo>> GetSharedContentAsync(HubSelectRequest request)
+        public async Task<List<HubInfo>> GetSharedContentAsync(HubSelectRequest request = null)
         {
             try
-            {                
+            {
+                if (request == null)
+                    request = new HubSelectRequest();
+
                 var result = await SendRequestAsync("sharedcontent/full", HttpMethod.Get, null, request.Filter, request.OrderBy);
                 return JsonConvert.DeserializeObject<List<HubInfo>>(result);
             }
@@ -200,10 +194,13 @@ namespace Q2gHelperQrs
             }
         }
 
-        public async Task<int> GetSharedContentCountAsync(HubSelectCountRequest request)
+        public async Task<int> GetSharedContentCountAsync(HubSelectCountRequest request = null)
         {
             try
-            {                
+            {
+                if (request == null)
+                    request = new HubSelectRequest();
+
                 var result = await SendRequestAsync("sharedcontent/count", HttpMethod.Get, null, request.Filter);
                 var count = JsonConvert.DeserializeObject<JToken>(result).Value<int>("value");
                 logger.Debug($"SharedContentCount: {count}");

@@ -1,7 +1,8 @@
-﻿namespace Q2gHelperQrs
+﻿namespace Q2g.HelperQrs
 {
     #region Usings
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Serialization;
     using System;
     using System.Collections.Generic;
     using System.Text;
@@ -18,6 +19,8 @@
     #endregion
 
     #region Json Communication Classes
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
+                NamingStrategyType = typeof(CamelCaseNamingStrategy))]
     public class HubOwer
     {
         public Guid? Id { get; set; }
@@ -28,10 +31,12 @@
 
         public override string ToString()
         {
-            return Name;
+            return $"{UserDirectory.ToLowerInvariant()}\\{UserId.ToLowerInvariant()}";
         }
     }
 
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
+                NamingStrategyType = typeof(CamelCaseNamingStrategy))]
     public class HubReferences
     {
         public Guid? Id { get; set; }
@@ -47,6 +52,8 @@
         }
     }
 
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore, 
+                NamingStrategyType = typeof(CamelCaseNamingStrategy))]
     public class HubInfo
     {
         public Guid? Id { get; set; }
