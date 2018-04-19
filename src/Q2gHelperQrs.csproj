@@ -2,18 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <RootNamespace>Q2gHelperQrs</RootNamespace>
+    <RootNamespace>Q2g.HelperQrs</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Konrad Mattheis und Martin Berthold</Authors>
     <Copyright>Copyright (c) 2018</Copyright>
     <Company>q2g</Company>
     <Version>1.0.10</Version>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0008" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="NLog" Version="4.5.0" />
-    <PackageReference Include="Q2gHelperPem" Version="1.0.2" />
+    <PackageReference Include="NLog" Version="4.5.3" />
+    <PackageReference Include="Q2gHelperPem" Version="1.0.3" />
   </ItemGroup>
 
   <Choose>

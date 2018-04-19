@@ -28,7 +28,7 @@
         public string UserDirectory { get; set; }
         public string Name { get; set; }
         public List<string> Privileges { get; set; }
-
+        
         public override string ToString()
         {
             return $"{UserDirectory.ToLowerInvariant()}\\{UserId.ToLowerInvariant()}";
