@@ -258,7 +258,7 @@ namespace Q2g.HelperQrs
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"The method \"{nameof(DeleteAllSharedContentAsync)}\" failed.");
+                logger.Error(ex, $"The method \"{nameof(DeleteAllSharedContentAsync)}\" was failed.");
                 return false;
             }
         }
