@@ -2,29 +2,29 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RootNamespace>Q2g.HelperQrs</RootNamespace>
     <Authors>Konrad Mattheis und Martin Berthold</Authors>
     <Copyright>Copyright (c) 2018</Copyright>
     <Company>q2g</Company>
-    <Version>1.0.10</Version>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Version>$(GitVersion_NuGetVersion)</Version>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0008" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="NLog" Version="4.5.3" />
-    <PackageReference Include="Q2gHelperPem" Version="1.0.3" />
-  </ItemGroup>
 
   <Choose>
     <When Condition="'$(Configuration)' == 'Release'">
+      <PropertyGroup>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      </PropertyGroup>
       <ItemGroup>    
         <PackageReference Include="Q2gHelperPem" Version="1.0.2" />        
       </ItemGroup>
     </When>
     <Otherwise>
+      <PropertyGroup>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+      </PropertyGroup>
       <ItemGroup>
         <Reference Include="Q2gHelperPem">
           <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Debug\netcoreapp2.0\Q2gHelperPem.dll</HintPath>
@@ -32,5 +32,23 @@
       </ItemGroup>
     </Otherwise>
   </Choose>
+  
+  <Target Name="WriteVersion" AfterTargets="GetVersion">
+    <WriteLinesToFile File="$(SolutionDir)\obj\version.txt" Lines="$(GitVersion_NuGetVersion)" Overwrite="true" />
+  </Target>
+  <Target Name="SetPackageVersionFromFile" BeforeTargets="GenerateNuspec">
+    <ReadLinesFromFile File="$(SolutionDir)\obj\version.txt">
+      <Output TaskParameter="Lines" PropertyName="PackageVersion" />
+    </ReadLinesFromFile>
+  </Target>
 
+  <ItemGroup>
+    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0008">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="NLog" Version="4.5.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="NLog" Version="4.5.3" />
+    <PackageReference Include="Q2gHelperPem" Version="1.0.3" />
+  </ItemGroup>
 </Project>
