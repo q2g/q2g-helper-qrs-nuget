@@ -6,6 +6,12 @@
     <Authors>Konrad Mattheis und Martin Berthold</Authors>
     <Copyright>Copyright (c) 2018</Copyright>
     <Company>q2g</Company>
+    <RepositoryUrl>https://github.com/q2g/q2g-helper-qrs-nuget</RepositoryUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/q2g/q2g-helper-qrs-nuget/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.nuget.org/packages/Q2gHelperQrs/</PackageProjectUrl>    
+    <PackageTags>qlik, QRS</PackageTags>
+    <Description>Classes to connect to the QRS engine of Qlik Sense.</Description>
+    
     <Version>$(GitVersion_NuGetVersion)</Version>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
@@ -56,6 +62,6 @@
     <PackageReference Include="NLog" Version="4.5.3" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="NLog" Version="4.5.3" />
-    <PackageReference Include="Q2gHelperPem" Version="1.0.3" />
+    <PackageReference Include="Q2gHelperPem" Version="1.0.6" />
   </ItemGroup>
 </Project>
