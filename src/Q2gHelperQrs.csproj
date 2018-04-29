@@ -42,7 +42,7 @@
     </ReadLinesFromFile>
   </Target>
 
-  <Target Name="Foo" AfterTargets="GenerateNuspec">    
+  <Target Name="PublishToNugetWithAPIKey" AfterTargets="GenerateNuspec">    
     <ReadLinesFromFile File="$(SolutionDir)\..\..\nugetapikey.txt">
       <Output TaskParameter="Lines" PropertyName="NugetAPIKey" />
     </ReadLinesFromFile>    
