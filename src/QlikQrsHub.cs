@@ -61,7 +61,7 @@ namespace Q2g.HelperQrs
             return result;
         }
 
-        private Uri BuildUriWithKey(string pathAndQuery, string key, string filter, string orderby)
+        private Uri BuildUriWithKey(string pathAndQuery, string key, string filter, string orderby, bool privileges)
         {
             var uriBuilder = new UriBuilder($"{ConnectUri}/qrs/{pathAndQuery}");                      
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
@@ -72,6 +72,9 @@ namespace Q2g.HelperQrs
 
             if (orderby != null)
                 query["orderby"] = orderby;
+
+            if (privileges)
+                query["privileges"] = privileges.ToString().ToLowerInvariant();
 
             uriBuilder.Query = query.ToString();
             return uriBuilder.Uri;
@@ -127,7 +130,7 @@ namespace Q2g.HelperQrs
 
         #region Public Methods
         public async Task<string> SendRequestAsync(string pathAndQuery, HttpMethod method, ContentData data = null,
-                                                    string filter = null, string orderby = null)
+                                                   string filter = null, string orderby = null, bool privileges = false)
         {
             try
             {
