@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -23,8 +23,8 @@
       <PropertyGroup>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       </PropertyGroup>
-      <ItemGroup>    
-        <PackageReference Include="Q2gHelperPem" Version="1.0.2" />        
+      <ItemGroup>
+        <PackageReference Include="Q2gHelperPem" Version="1.0.6" />       
       </ItemGroup>
     </When>
     <Otherwise>
@@ -61,7 +61,7 @@
     </PackageReference>
     <PackageReference Include="NLog" Version="4.5.3" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="NLog" Version="4.5.3" />
-    <PackageReference Include="Q2gHelperPem" Version="1.0.6" />
+    <PackageReference Include="NLog" Version="4.5.4" />
+
   </ItemGroup>
 </Project>

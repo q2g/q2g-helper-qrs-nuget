@@ -135,7 +135,7 @@ namespace Q2g.HelperQrs
             try
             {
                 var key = GetRandomAlphanumericString(16);
-                var keyRelativeUri = BuildUriWithKey(pathAndQuery, key, filter, orderby);
+                var keyRelativeUri = BuildUriWithKey(pathAndQuery, key, filter, orderby, privileges);
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
                 connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
