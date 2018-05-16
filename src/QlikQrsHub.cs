@@ -26,6 +26,7 @@ namespace Q2g.HelperQrs
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading;
+    using NLog;
     #endregion
 
     public class QlikQrsHub
