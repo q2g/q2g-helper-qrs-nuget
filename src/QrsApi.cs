@@ -18,35 +18,6 @@
     }
     #endregion
 
-    #region Json Communication Classes
-    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore, 
-                NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-    public class HubInfo
-    {
-        public Guid? Id { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public DateTime? ModifiedDate { get; set; }
-        public string ModifiedByUserName { get; set; }
-        public List<string> CustomProperties { get; set; }
-        public Owner Owner { get; set; }
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public string Description { get; set; }
-        public Uri Uri { get; set; }
-        public List<string> Tags { get; set; }
-        public List<Reference> References { get; set; }
-        public List<string> MetaData { get; set; }
-        public List<string> Privileges { get; set; }
-        public bool? ImpactSecurityAccess { get; set; }
-        public string SchemaPath { get; set; }
-
-        public override string ToString()
-        {
-            return Id?.ToString();
-        }
-    }
-    #endregion
-
     #region Client Request Classes
     public class ContentData
     {
@@ -103,6 +74,33 @@
     #endregion
 
     #region Qlik Qrs Objects
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
+                NamingStrategyType = typeof(CamelCaseNamingStrategy))]
+    public class HubInfo
+    {
+        public Guid? Id { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
+        public string ModifiedByUserName { get; set; }
+        public List<string> CustomProperties { get; set; }
+        public Owner Owner { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public string Description { get; set; }
+        public Uri Uri { get; set; }
+        public List<string> Tags { get; set; }
+        public List<Reference> References { get; set; }
+        public List<string> MetaData { get; set; }
+        public List<string> Privileges { get; set; }
+        public bool? ImpactSecurityAccess { get; set; }
+        public string SchemaPath { get; set; }
+
+        public override string ToString()
+        {
+            return Id?.ToString();
+        }
+    }
+
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
                NamingStrategyType = typeof(CamelCaseNamingStrategy))]
     public class QlikAnalyticConnection
