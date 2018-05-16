@@ -13,7 +13,6 @@ namespace Q2g.HelperQrs
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Serialization;
-    using NLog;
     using System;
     using System.Collections.Generic;
     using System.IO;
