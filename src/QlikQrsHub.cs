@@ -13,7 +13,6 @@ namespace Q2g.HelperQrs
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Serialization;
-    using NLog;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -27,6 +26,7 @@ namespace Q2g.HelperQrs
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading;
+    using NLog;
     #endregion
 
     public class QlikQrsHub
@@ -61,7 +61,7 @@ namespace Q2g.HelperQrs
             return result;
         }
 
-        private Uri BuildUriWithKey(string pathAndQuery, string key, string filter, string orderby)
+        private Uri BuildUriWithKey(string pathAndQuery, string key, string filter, string orderby, bool privileges)
         {
             var uriBuilder = new UriBuilder($"{ConnectUri}/qrs/{pathAndQuery}");                      
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
@@ -72,6 +72,9 @@ namespace Q2g.HelperQrs
 
             if (orderby != null)
                 query["orderby"] = orderby;
+
+            if (privileges)
+                query["privileges"] = privileges.ToString().ToLowerInvariant();
 
             uriBuilder.Query = query.ToString();
             return uriBuilder.Uri;
@@ -127,12 +130,12 @@ namespace Q2g.HelperQrs
 
         #region Public Methods
         public async Task<string> SendRequestAsync(string pathAndQuery, HttpMethod method, ContentData data = null,
-                                                    string filter = null, string orderby = null)
+                                                   string filter = null, string orderby = null, bool privileges = false)
         {
             try
             {
                 var key = GetRandomAlphanumericString(16);
-                var keyRelativeUri = BuildUriWithKey(pathAndQuery, key, filter, orderby);
+                var keyRelativeUri = BuildUriWithKey(pathAndQuery, key, filter, orderby, privileges);
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
                 connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
