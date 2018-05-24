@@ -63,7 +63,7 @@ namespace Q2g.HelperQrs
 
         private Uri BuildUriWithKey(string pathAndQuery, string key, string filter, string orderby, bool privileges)
         {
-            var uriBuilder = new UriBuilder($"{ConnectUri}/qrs/{pathAndQuery}");                      
+            var uriBuilder = new UriBuilder($"{ConnectUri.AbsoluteUri.TrimEnd('/')}/qrs/{pathAndQuery}");                      
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query["Xrfkey"] = key;
 
@@ -225,6 +225,15 @@ namespace Q2g.HelperQrs
                     Type = "Qlik report",
                     Description = request.Description,
                     Name = request.Name,
+                    MetaData = new List<MetaData>()
+                    {
+                        new MetaData()
+                        {
+                             Id = Guid.NewGuid().ToString(),
+                             Key = "ser-type",
+                             Value = "report",
+                        }
+                    }
                 };
 
                 return await UploadFileInternalAsync(hubInfo, request.Data);

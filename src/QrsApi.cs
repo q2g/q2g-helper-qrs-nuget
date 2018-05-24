@@ -90,7 +90,7 @@
         public Uri Uri { get; set; }
         public List<string> Tags { get; set; }
         public List<Reference> References { get; set; }
-        public List<string> MetaData { get; set; }
+        public List<MetaData> MetaData { get; set; }
         public List<string> Privileges { get; set; }
         public bool? ImpactSecurityAccess { get; set; }
         public string SchemaPath { get; set; }
@@ -349,6 +349,20 @@
         {
             return Id?.ToString();
         }
+    }
+
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
+                NamingStrategyType = typeof(CamelCaseNamingStrategy))]
+    public class MetaData
+    {
+        public string Id { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime ModifiedDate { get; set; }
+        public string ModifiedByUserName { get; set; }
+        public string Key { get; set; }
+        public string Value { get; set; }
+        public bool ImpactSecurityAccess { get; set; }
+        public string SchemaPath { get; set; }
     }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
