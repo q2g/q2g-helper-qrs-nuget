@@ -97,7 +97,7 @@ namespace Q2g.HelperQrs
         public string Type { get; set; }
         public string Description { get; set; }
         public Uri Uri { get; set; }
-        public List<string> Tags { get; set; }
+        public List<Tag> Tags { get; set; }
         public List<Reference> References { get; set; }
         public List<MetaData> MetaData { get; set; }
         public List<string> Privileges { get; set; }
@@ -108,6 +108,13 @@ namespace Q2g.HelperQrs
         {
             return Id?.ToString();
         }
+    }
+
+    public class Tag
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public List<string> Privileges { get; set; }
     }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
@@ -148,8 +155,8 @@ namespace Q2g.HelperQrs
         public int RuleContext { get; set; }
         public string SeedId { get; set; }
         public int Version { get; set; }
-        public List<object> Tags { get; set; }
-        public object Privileges { get; set; }
+        public List<Tag> Tags { get; set; }
+        public List<string> Privileges { get; set; }
         public string SchemaPath { get; set; }
     }
 
@@ -228,7 +235,7 @@ namespace Q2g.HelperQrs
         public bool ExtendedSecurityEnvironment { get; set; }
         public List<string> WebsocketCrossOriginWhiteList { get; set; }
         public bool DefaultVirtualProxy { get; set; }
-        public List<object> Tags { get; set; }
+        public List<Tag> Tags { get; set; }
         public string SamlMetadataIdP { get; set; }
         public string SamlHostUri { get; set; }
         public string SamlEntityId { get; set; }
@@ -299,7 +306,7 @@ namespace Q2g.HelperQrs
         public List<object> CustomProperties { get; set; }
         public Settings Settings { get; set; }
         public ServerNodeConfiguration ServerNodeConfiguration { get; set; }
-        public List<object> Tags { get; set; }
+        public List<Tag> Tags { get; set; }
         public List<string> Privileges { get; set; }
         public string SchemaPath { get; set; }
     }
@@ -385,7 +392,7 @@ namespace Q2g.HelperQrs
         public List<object> CustomProperties { get; set; }
         public Owner Owner { get; set; }
         public string Name { get; set; }
-        public List<object> Tags { get; set; }
+        public List<Tag> Tags { get; set; }
         public WhiteList WhiteList { get; set; }
         public List<Reference> References { get; set; }
         public List<string> Privileges { get; set; }
