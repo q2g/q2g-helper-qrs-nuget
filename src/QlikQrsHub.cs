@@ -37,7 +37,7 @@ namespace Q2g.HelperQrs
 
         #region Properties & Variables
         private Uri ConnectUri = null;
-        private Cookie ConnectCookie = null;        
+        private readonly Cookie ConnectCookie = null;        
        
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateValidationCallback { get; set; }
         #endregion
@@ -63,7 +63,8 @@ namespace Q2g.HelperQrs
 
         private Uri BuildUriWithKey(string pathAndQuery, string key, string filter, string orderby, bool privileges)
         {
-            var uriBuilder = new UriBuilder($"{ConnectUri.AbsoluteUri.TrimEnd('/')}/qrs/{pathAndQuery}");                      
+            var uriBuilder = new UriBuilder($"{ConnectUri.AbsoluteUri.TrimEnd('/')}/qrs/{pathAndQuery}");
+
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query["Xrfkey"] = key;
 
@@ -126,9 +127,9 @@ namespace Q2g.HelperQrs
                 return null;
             }
         }
-        #endregion
+#endregion
 
-        #region Public Methods
+#region Public Methods
         public async Task<string> SendRequestAsync(string pathAndQuery, HttpMethod method, ContentData data = null,
                                                    string filter = null, string orderby = null, bool privileges = false)
         {
@@ -139,7 +140,12 @@ namespace Q2g.HelperQrs
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
                 connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
-
+#if NET452
+                //Support Certificate check
+                    var callback = ServicePointManager.ServerCertificateValidationCallback;
+                    if (callback == null)
+                         throw new NotImplementedException(".NET 452 has no certificate check");
+#else
                 if (this.ServerCertificateValidationCallback != null)
                     connectionHandler.ServerCertificateCustomValidationCallback = ServerCertificateValidationCallback;
                 else
@@ -150,6 +156,8 @@ namespace Q2g.HelperQrs
                             return callback(sender, certificate, chain, sslPolicyErrors);
                         return false;
                     };
+#endif
+
 
                 var httpClient = new HttpClient(connectionHandler) { BaseAddress = ConnectUri };
                 var request = new HttpRequestMessage(method, keyRelativeUri);
@@ -288,6 +296,6 @@ namespace Q2g.HelperQrs
                 return false;
             }
         }
-        #endregion
+#endregion
     }
 }
