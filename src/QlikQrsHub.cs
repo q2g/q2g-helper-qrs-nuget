@@ -51,9 +51,9 @@ namespace Q2g.HelperQrs
         #endregion
 
         #region Privat Methods
-        private string GetRandomAlphanumericString(int length)
+        private string GetXrfKey(int length = 16)
         {
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqerstuvwxyz0123456789";
             var random = new Random();
             var result = new string(Enumerable.Repeat(chars, length)
                                               .Select(s => s[random.Next(s.Length)])
@@ -134,7 +134,7 @@ namespace Q2g.HelperQrs
         {
             try
             {
-                var key = GetRandomAlphanumericString(16);
+                var key = QrsUtilities.GetXrfKey(16);
                 var keyRelativeUri = BuildUriWithKey(pathAndQuery, key, filter, orderby, privileges);
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
