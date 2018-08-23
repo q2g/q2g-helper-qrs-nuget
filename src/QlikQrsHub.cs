@@ -141,10 +141,9 @@ namespace Q2g.HelperQrs
                 var connectionHandler = new HttpClientHandler();
                 connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
 #if NET452
-                //Support Certificate check
-                    var callback = ServicePointManager.ServerCertificateValidationCallback;
-                    if (callback == null)
-                         throw new NotImplementedException(".NET 452 has no certificate check");
+                var callback = ServicePointManager.ServerCertificateValidationCallback;
+                if (callback == null)
+                    throw new NotImplementedException(".NET 452 has no certificate check");
 #else
                 if (this.ServerCertificateValidationCallback != null)
                     connectionHandler.ServerCertificateCustomValidationCallback = ServerCertificateValidationCallback;
