@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;net452</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1;net452;net462</TargetFrameworks>
     <RootNamespace>Q2g.HelperQrs</RootNamespace>
     <Authors>Konrad Mattheis und Martin Berthold</Authors>
     <Copyright>Copyright (c) 2018</Copyright>
@@ -33,7 +33,7 @@
       </PropertyGroup>
       <ItemGroup>
         <Reference Include="Q2gHelperPem">
-          <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Debug\netcoreapp2.0\Q2gHelperPem.dll</HintPath>
+          <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Debug\$(TargetFramework)\Q2gHelperPem.dll</HintPath>
         </Reference>
       </ItemGroup>
     </Otherwise>
@@ -51,10 +51,15 @@
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="NLog" Version="4.5.9" />
+    <PackageReference Include="NLog" Version="4.5.10" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
+    <Reference Include="System.Web" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <Reference Include="System.Web" />
     <Reference Include="System.Net.Http" />
   </ItemGroup>

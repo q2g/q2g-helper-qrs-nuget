@@ -143,7 +143,11 @@ namespace Q2g.HelperQrs
 #if NET452
                 var callback = ServicePointManager.ServerCertificateValidationCallback;
                 if (callback == null)
-                    throw new NotImplementedException(".NET 452 has no certificate check");
+                    throw new NotImplementedException(".NET has no certificate check");
+#elif NET462
+                var callback = ServicePointManager.ServerCertificateValidationCallback;
+                if (callback == null)
+                    throw new NotImplementedException(".NET has no certificate check");
 #else
                 if (this.ServerCertificateValidationCallback != null)
                     connectionHandler.ServerCertificateCustomValidationCallback = ServerCertificateValidationCallback;
