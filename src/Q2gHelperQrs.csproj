@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net452;net462</TargetFrameworks>
     <RootNamespace>Q2g.HelperQrs</RootNamespace>
     <Authors>Konrad Mattheis und Martin Berthold</Authors>
     <Copyright>Copyright (c) 2018</Copyright>
@@ -18,6 +17,19 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
   </PropertyGroup>
 
+  <Choose>
+    <When Condition="'$(MSBuildRuntimeType)' == 'Core'">
+      <PropertyGroup>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <TargetFrameworks>netcoreapp2.1;net452;net462</TargetFrameworks>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  
   <Choose>
     <When Condition="'$(Configuration)' == 'Release'">
       <PropertyGroup>
