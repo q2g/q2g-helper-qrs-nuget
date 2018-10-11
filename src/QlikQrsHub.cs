@@ -233,7 +233,7 @@ namespace Q2g.HelperQrs
             {
                 var hubInfo = new HubInfo()
                 {
-                    Type = "Qlik report",
+                    Type = request.ReportType,
                     Description = request.Description,
                     Name = request.Name,
                     MetaData = new List<MetaData>()

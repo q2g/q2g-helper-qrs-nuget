@@ -46,6 +46,7 @@ namespace Q2g.HelperQrs
         public string Description { get; set; }
         public ContentData Data { get; set; }
         public RequestType Type => RequestType.CREATE;
+        public string ReportType { get; set; } = "Qlik report";
     }
 
     public class HubUpdateRequest : IHubRequest
