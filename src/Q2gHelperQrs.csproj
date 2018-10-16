@@ -69,7 +69,7 @@
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0014">
+    <PackageReference Include="GitVersionTask" Version="4.0.1-beta0001-0008">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
