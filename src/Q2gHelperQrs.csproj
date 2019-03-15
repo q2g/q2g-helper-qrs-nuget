@@ -3,44 +3,39 @@
   <PropertyGroup>
     <RootNamespace>Q2g.HelperQrs</RootNamespace>
     <Authors>Konrad Mattheis und Martin Berthold</Authors>
-    <Copyright>Copyright (c) 2018</Copyright>
+    <Copyright>Copyright (c) 2019</Copyright>
     <Company>q2g</Company>
     <RepositoryUrl>https://github.com/q2g/q2g-helper-qrs-nuget</RepositoryUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/q2g/q2g-helper-qrs-nuget/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://www.nuget.org/packages/Q2gHelperQrs/</PackageProjectUrl>    
+    <PackageProjectUrl>https://www.nuget.org/packages/Q2gHelperQrs/</PackageProjectUrl>
     <PackageTags>qlik, QRS</PackageTags>
     <Description>Classes to connect to the QRS engine of Qlik Sense.</Description>
-    
     <Version>$(GitVersion_NuGetVersion)</Version>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-   
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
-   
+
   <Choose>
     <When Condition="'$(MSBuildRuntimeType)' == 'Core'">
       <PropertyGroup>
-        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <TargetFrameworks>netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
-        <TargetFrameworks>netcoreapp2.1;net452;net462</TargetFrameworks>
+        <TargetFrameworks>netcoreapp2.1;netcoreapp2.2;net452;net462</TargetFrameworks>
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  
+
   <Choose>
     <When Condition="'$(Configuration)' == 'Release'">
       <PropertyGroup>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       </PropertyGroup>
       <ItemGroup>
-        <PackageReference Include="Q2gHelperPem" Version="1.2.0" />       
+        <PackageReference Include="Q2gHelperPem" Version="1.2.0" />
       </ItemGroup>
     </When>
     <Otherwise>
@@ -54,26 +49,26 @@
       </ItemGroup>
     </Otherwise>
   </Choose>
-  
-  <Target Name="PublishToNugetWithAPIKey" AfterTargets="GenerateNuspec">    
+
+  <Target Name="PublishToNugetWithAPIKey" AfterTargets="GenerateNuspec">
     <ReadLinesFromFile File="$(SolutionDir)\..\..\nugetapikey.txt">
       <Output TaskParameter="Lines" PropertyName="NugetAPIKey" />
-    </ReadLinesFromFile>    
+    </ReadLinesFromFile>
     <Exec WorkingDirectory="$(BaseDir)" Command="dotnet nuget push $(PackageOutputAbsolutePath)$(PackageId).$(PackageVersion).nupkg -k $(NugetAPIKey) -s https://api.nuget.org/v3/index.json" />
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="GitVersionTask" Version="4.0.0" PrivateAssets="All"/>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="NLog" Version="4.5.10" />
+    <PackageReference Include="GitVersionTask" Version="4.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="NLog" Version="4.5.11" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
     <Reference Include="System.Web" />
     <Reference Include="System.Net.Http" />
   </ItemGroup>
-  
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <Reference Include="System.Web" />
     <Reference Include="System.Net.Http" />
