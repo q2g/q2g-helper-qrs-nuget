@@ -50,7 +50,7 @@
     </Otherwise>
   </Choose>
 
-  <Target Name="PublishToNugetWithAPIKey" AfterTargets="GenerateNuspec">
+  <Target Name="PublishToNugetWithAPIKey" AfterTargets="GenerateNuspec" Condition="Exists('$(SolutionDir)\..\..\nugetapikey.txt')">
     <ReadLinesFromFile File="$(SolutionDir)\..\..\nugetapikey.txt">
       <Output TaskParameter="Lines" PropertyName="NugetAPIKey" />
     </ReadLinesFromFile>
