@@ -35,7 +35,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       </PropertyGroup>
       <ItemGroup>
-        <PackageReference Include="Q2gHelperPem" Version="1.4.3" />
+        <PackageReference Include="Q2gHelperPem" Version="1.4.6" />
       </ItemGroup>
     </When>
     <Otherwise>
@@ -60,8 +60,8 @@
   <ItemGroup>
     <PackageReference Include="GitVersionTask" Version="4.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="NLog" Version="4.5.11" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="NLog" Version="4.6.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
