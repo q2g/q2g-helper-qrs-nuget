@@ -1,22 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
     <RootNamespace>Q2g.HelperQrs</RootNamespace>
     <Authors>Konrad Mattheis und Martin Berthold</Authors>
-    <Copyright>Copyright (c) 2018</Copyright>
+    <Copyright>Copyright (c) 2019</Copyright>
     <Company>q2g</Company>
     <RepositoryUrl>https://github.com/q2g/q2g-helper-qrs-nuget</RepositoryUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/q2g/q2g-helper-qrs-nuget/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://www.nuget.org/packages/Q2gHelperQrs/</PackageProjectUrl>    
+    <PackageProjectUrl>https://www.nuget.org/packages/Q2gHelperQrs/</PackageProjectUrl>
     <PackageTags>qlik, QRS</PackageTags>
     <Description>Classes to connect to the QRS engine of Qlik Sense.</Description>
-    
     <Version>$(GitVersion_NuGetVersion)</Version>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(MSBuildRuntimeType)' == 'Core'">
+      <PropertyGroup>
+        <TargetFrameworks>netcoreapp2.1;netcoreapp2.2</TargetFrameworks>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <TargetFrameworks>netcoreapp2.1;netcoreapp2.2;net452;net462</TargetFrameworks>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
   <Choose>
     <When Condition="'$(Configuration)' == 'Release'">
@@ -24,7 +35,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       </PropertyGroup>
       <ItemGroup>
-        <PackageReference Include="Q2gHelperPem" Version="1.0.6" />       
+        <PackageReference Include="Q2gHelperPem" Version="1.4.6" />
       </ItemGroup>
     </When>
     <Otherwise>
@@ -33,33 +44,33 @@
       </PropertyGroup>
       <ItemGroup>
         <Reference Include="Q2gHelperPem">
-          <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Debug\netcoreapp2.0\Q2gHelperPem.dll</HintPath>
+          <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Debug\$(TargetFramework)\Q2gHelperPem.dll</HintPath>
         </Reference>
       </ItemGroup>
     </Otherwise>
   </Choose>
-  
-  <Target Name="WriteVersion" AfterTargets="GetVersion">
-    <WriteLinesToFile File="$(SolutionDir)\obj\version.txt" Lines="$(GitVersion_NuGetVersion)" Overwrite="true" />
-  </Target>
-  <Target Name="SetPackageVersionFromFile" BeforeTargets="GenerateNuspec">
-    <ReadLinesFromFile File="$(SolutionDir)\obj\version.txt">
-      <Output TaskParameter="Lines" PropertyName="PackageVersion" />
-    </ReadLinesFromFile>
-  </Target>
 
-  <Target Name="PublishToNugetWithAPIKey" AfterTargets="GenerateNuspec">    
+  <Target Name="PublishToNugetWithAPIKey" AfterTargets="GenerateNuspec" Condition="Exists('$(SolutionDir)\..\..\nugetapikey.txt')">
     <ReadLinesFromFile File="$(SolutionDir)\..\..\nugetapikey.txt">
       <Output TaskParameter="Lines" PropertyName="NugetAPIKey" />
-    </ReadLinesFromFile>    
+    </ReadLinesFromFile>
     <Exec WorkingDirectory="$(BaseDir)" Command="dotnet nuget push $(PackageOutputAbsolutePath)$(PackageId).$(PackageVersion).nupkg -k $(NugetAPIKey) -s https://api.nuget.org/v3/index.json" />
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0008">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="NLog" Version="4.5.4" />
+    <PackageReference Include="GitVersionTask" Version="4.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="NLog" Version="4.6.4" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
+    <Reference Include="System.Web" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+    <Reference Include="System.Web" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 </Project>
