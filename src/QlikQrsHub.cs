@@ -37,8 +37,8 @@ namespace Q2g.HelperQrs
 
         #region Properties & Variables
         private Uri ConnectUri = null;
-        private readonly Cookie ConnectCookie = null;        
-       
+        private readonly Cookie ConnectCookie = null;
+
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateValidationCallback { get; set; }
         #endregion
 
@@ -127,9 +127,9 @@ namespace Q2g.HelperQrs
                 return null;
             }
         }
-#endregion
+        #endregion
 
-#region Public Methods
+        #region Public Methods
         public async Task<string> SendRequestAsync(string pathAndQuery, HttpMethod method, ContentData data = null,
                                                    string filter = null, string orderby = null, bool privileges = false)
         {
@@ -240,12 +240,25 @@ namespace Q2g.HelperQrs
                     {
                         new MetaData()
                         {
-                             Id = Guid.NewGuid().ToString(),
-                             Key = "ser-type",
-                             Value = "report",
+                            Id = Guid.NewGuid().ToString(),
+                            Key = "ser-type",
+                            Value = "report",
                         }
                     }
                 };
+
+                if (request.Tags != null && request.Tags.Count > 0)
+                {
+                    var tagJson = SendRequestAsync("tag/full", HttpMethod.Get).Result;
+                    var tagList = JsonConvert.DeserializeObject<List<Tag>>(tagJson);
+                    hubInfo.Tags = new List<Tag>();
+                    foreach (var tag in request.Tags)
+                    {
+                        var qlikTag = tagList.FirstOrDefault(t => t.Name == tag);
+                        if (qlikTag != null)
+                            hubInfo.Tags.Add(qlikTag);
+                    }
+                }
 
                 return await UploadFileInternalAsync(hubInfo, request.Data);
             }
@@ -289,7 +302,7 @@ namespace Q2g.HelperQrs
         public async Task<bool> DeleteSharedContentAsync(HubDeleteRequest request)
         {
             try
-            {                
+            {
                 var result = await SendRequestAsync($"sharedcontent/{request.Id}", HttpMethod.Delete, null, null);
                 return result != null;
             }
@@ -299,6 +312,6 @@ namespace Q2g.HelperQrs
                 return false;
             }
         }
-#endregion
+        #endregion
     }
 }
