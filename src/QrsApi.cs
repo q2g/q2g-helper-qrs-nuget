@@ -47,6 +47,7 @@ namespace Q2g.HelperQrs
         public ContentData Data { get; set; }
         public RequestType Type => RequestType.CREATE;
         public string ReportType { get; set; } = "Qlik report";
+        public List<string> Tags { get; set; }
     }
 
     public class HubUpdateRequest : IHubRequest
@@ -114,8 +115,12 @@ namespace Q2g.HelperQrs
     public class Tag
     {
         public string Id { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
+        public string ModifiedByUserName { get; set; }
         public string Name { get; set; }
         public List<string> Privileges { get; set; }
+        public string SchemaPath { get; set; }
     }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore,
