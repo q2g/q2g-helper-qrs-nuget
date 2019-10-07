@@ -140,15 +140,6 @@ namespace Q2g.HelperQrs
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
                 connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
-#if NET452
-                var callback = ServicePointManager.ServerCertificateValidationCallback;
-                if (callback == null)
-                    throw new NotImplementedException(".NET has no certificate check");
-#elif NET462
-                var callback = ServicePointManager.ServerCertificateValidationCallback;
-                if (callback == null)
-                    throw new NotImplementedException(".NET has no certificate check");
-#else
                 if (this.ServerCertificateValidationCallback != null)
                     connectionHandler.ServerCertificateCustomValidationCallback = ServerCertificateValidationCallback;
                 else
@@ -159,8 +150,6 @@ namespace Q2g.HelperQrs
                             return callback(sender, certificate, chain, sslPolicyErrors);
                         return false;
                     };
-#endif
-
 
                 var httpClient = new HttpClient(connectionHandler) { BaseAddress = ConnectUri };
                 var request = new HttpRequestMessage(method, keyRelativeUri);
