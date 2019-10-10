@@ -168,7 +168,7 @@ namespace Q2g.HelperQrs
                 }
                 else
                 {
-                    logger.Error($"Send request failed {result.StatusCode} {result.ReasonPhrase}");
+                    logger.Error($"Send request failed {result.ToString()}");
                 }
 
                 return null;
