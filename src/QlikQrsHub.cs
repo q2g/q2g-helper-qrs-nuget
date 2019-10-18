@@ -168,7 +168,7 @@ namespace Q2g.HelperQrs
                 }
                 else
                 {
-                    logger.Error($"Send request failed {result.StatusCode} {result.ReasonPhrase}");
+                    logger.Error($"Send request failed {result.ToString()}");
                 }
 
                 return null;
@@ -243,7 +243,7 @@ namespace Q2g.HelperQrs
                     hubInfo.Tags = new List<Tag>();
                     foreach (var tag in request.Tags)
                     {
-                        var qlikTag = tagList.FirstOrDefault(t => t.Name == tag);
+                        var qlikTag = tagList.FirstOrDefault(t => t.Name == tag.Name);
                         if (qlikTag != null)
                             hubInfo.Tags.Add(qlikTag);
                     }
