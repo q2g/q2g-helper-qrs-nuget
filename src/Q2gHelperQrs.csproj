@@ -3,15 +3,15 @@
   <PropertyGroup>
     <RootNamespace>Q2g.HelperQrs</RootNamespace>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <Authors>Konrad Mattheis und Martin Berthold</Authors>
+    <Authors>akquinet finance &amp; controlling GmbH</Authors>
     <Copyright>Copyright (c) 2019</Copyright>
-    <Company>q2g</Company>
+    <Company>akquinet finance &amp; controlling GmbH</Company>
     <RepositoryUrl>https://github.com/q2g/q2g-helper-qrs-nuget</RepositoryUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/q2g/q2g-helper-qrs-nuget/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://www.nuget.org/packages/Q2gHelperQrs/</PackageProjectUrl>
     <PackageTags>qlik, QRS</PackageTags>
     <Description>Classes to connect to the QRS engine of Qlik Sense.</Description>
-    <Version>$(GitVersion_NuGetVersion)</Version>
+    <Version>$(GitVersion_InformationalVersion)</Version>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
@@ -19,9 +19,6 @@
   
   <Choose>
     <When Condition="'$(Configuration)' == 'Release'">
-      <PropertyGroup>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-      </PropertyGroup>
       <ItemGroup>
         <Reference Include="Q2gHelperPem">
           <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Release\$(TargetFramework)\Q2gHelperPem.dll</HintPath>
@@ -29,9 +26,6 @@
       </ItemGroup>
     </When>
     <Otherwise>
-      <PropertyGroup>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-      </PropertyGroup>
       <ItemGroup>
         <Reference Include="Q2gHelperPem">
           <HintPath>..\..\q2g-helper-pem-nuget\src\bin\Debug\$(TargetFramework)\Q2gHelperPem.dll</HintPath>
@@ -41,16 +35,13 @@
   </Choose>
 
   <ItemGroup>
-    <PackageReference Include="GitVersionTask" Version="5.0.1" PrivateAssets="All" />
+    <PackageReference Include="GitVersionTask" Version="5.1.2" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="NLog" Version="4.6.7" />
-    <!--<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All" />-->
+    <PackageReference Include="NLog" Version="4.6.8" />
   </ItemGroup>
 
-  <!--<Target Name="PublishToNugetWithAPIKey" AfterTargets="GenerateNuspec" Condition="Exists('$(SolutionDir)\..\..\nugetapikey.txt')">
-    <ReadLinesFromFile File="$(SolutionDir)\..\..\nugetapikey.txt">
-      <Output TaskParameter="Lines" PropertyName="NugetAPIKey" />
-    </ReadLinesFromFile>
-    <Exec WorkingDirectory="$(BaseDir)" Command="dotnet nuget push $(PackageOutputAbsolutePath)$(PackageId).$(PackageVersion).nupkg -k $(NugetAPIKey) -s https://api.nuget.org/v3/index.json" />
-  </Target>-->
+  <Target Name="GitVersion" BeforeTargets="AfterBuild">
+    <Message Importance="High" Text="++++++ GitVersion: $(GitVersion_InformationalVersion) ++++++" />
+  </Target>
+  
 </Project>
