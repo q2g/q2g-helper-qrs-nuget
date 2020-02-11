@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>Q2g.HelperQrs</RootNamespace>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <Authors>akquinet finance &amp; controlling GmbH</Authors>
     <Copyright>Copyright (c) 2019</Copyright>
     <Company>akquinet finance &amp; controlling GmbH</Company>
