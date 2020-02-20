@@ -4,7 +4,7 @@
     <RootNamespace>Q2g.HelperQrs</RootNamespace>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Authors>akquinet finance &amp; controlling GmbH</Authors>
-    <Copyright>Copyright (c) 2020</Copyright>
+    <Copyright>Copyright (c) $([System.DateTime]::Today.ToString('yyyy'))</Copyright>
     <Company>akquinet finance &amp; controlling GmbH</Company>
     <RepositoryUrl>https://github.com/q2g/q2g-helper-qrs-nuget</RepositoryUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/q2g/q2g-helper-qrs-nuget/master/LICENSE</PackageLicenseUrl>
