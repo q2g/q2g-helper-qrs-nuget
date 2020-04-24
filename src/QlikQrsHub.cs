@@ -3,10 +3,8 @@
     #region Usings
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json.Serialization;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Security;
@@ -16,7 +14,6 @@
     using System.Web;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Threading;
     using NLog;
     #endregion
 
