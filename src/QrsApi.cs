@@ -5,6 +5,7 @@
     using Newtonsoft.Json.Serialization;
     using System;
     using System.Collections.Generic;
+    using System.Security.Cryptography.X509Certificates;
     #endregion
 
     #region Enumeration
@@ -64,7 +65,7 @@
         }
         public static string GetIdFilter(Guid sharedContentId)
         {
-            return $"Id eq {sharedContentId.ToString()}";
+            return $"Id eq {sharedContentId}";
         }
     }
 
@@ -393,6 +394,26 @@
         public List<Reference> References { get; set; }
         public List<string> Privileges { get; set; }
         public string SchemaPath { get; set; }
+    }
+    #endregion
+
+    #region Authentication
+    public class CertAuthentication
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
+        public X509Certificate2 Certificate { get; set; }
+
+        public bool Validate()
+        {
+            if (String.IsNullOrEmpty(Key))
+                return false;
+            if (String.IsNullOrEmpty(Value))
+                return false;
+            if (Certificate == null)
+                return false;
+            return true;
+        }
     }
     #endregion
 }

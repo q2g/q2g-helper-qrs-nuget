@@ -20,11 +20,13 @@
     public class QlikQrsHub
     {
         #region Logger
-        private static Logger logger = LogManager.GetCurrentClassLogger();
+        private readonly static Logger logger = LogManager.GetCurrentClassLogger();
         #endregion
 
         #region Properties & Variables
-        private Uri ConnectUri = null;
+        private readonly Uri ConnectUri = null;
+        private readonly bool UseCertificate = false;
+        private readonly CertAuthentication CertAuth = null;
         private readonly Cookie ConnectCookie = null;
 
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateValidationCallback { get; set; }
@@ -33,8 +35,16 @@
         #region Constructor
         public QlikQrsHub(Uri connectUri, Cookie cookie)
         {
+            UseCertificate = false;
             ConnectUri = connectUri;
             ConnectCookie = cookie;
+        }
+
+        public QlikQrsHub(Uri connectUri, CertAuthentication certAuth)
+        {
+            UseCertificate = true;
+            ConnectUri = connectUri;
+            CertAuth = certAuth;
         }
         #endregion
 
@@ -127,7 +137,14 @@
                 var keyRelativeUri = BuildUriWithKey(pathAndQuery, key, filter, orderby, privileges);
                 logger.Debug($"ConnectUri: {keyRelativeUri}");
                 var connectionHandler = new HttpClientHandler();
-                connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
+                if (UseCertificate)
+                {
+                    if (!CertAuth.Validate())
+                        throw new Exception($"Certificate authenification failed. (Key='{CertAuth?.Key}' | Value='{CertAuth?.Value}' | Certificate='{CertAuth?.Certificate?.Thumbprint}')");
+                    connectionHandler.ClientCertificates.Add(CertAuth.Certificate);
+                }
+                else
+                    connectionHandler.CookieContainer.Add(ConnectUri, ConnectCookie);
                 if (this.ServerCertificateValidationCallback != null)
                     connectionHandler.ServerCertificateCustomValidationCallback = ServerCertificateValidationCallback;
                 else
@@ -141,6 +158,8 @@
 
                 var httpClient = new HttpClient(connectionHandler) { BaseAddress = ConnectUri };
                 var request = new HttpRequestMessage(method, keyRelativeUri);
+                if (UseCertificate)
+                    request.Headers.Add(CertAuth.Key, CertAuth.Value);
                 request.Headers.Add("X-Qlik-Xrfkey", key);
                 if (data != null)
                 {
@@ -156,7 +175,7 @@
                 }
                 else
                 {
-                    logger.Error($"Send request failed {result.ToString()}");
+                    logger.Error($"Send request failed {result}");
                 }
 
                 return null;
