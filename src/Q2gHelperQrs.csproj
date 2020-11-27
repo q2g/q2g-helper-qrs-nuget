@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>Q2g.HelperQrs</RootNamespace>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Authors>akquinet finance &amp; controlling GmbH</Authors>
     <Copyright>Copyright (c) $([System.DateTime]::Today.ToString('yyyy'))</Copyright>
     <Company>akquinet finance &amp; controlling GmbH</Company>
