@@ -24,11 +24,11 @@
         #endregion
 
         #region Properties & Variables
-        private readonly Uri ConnectUri = null;
         private readonly bool UseCertificate = false;
         private readonly CertAuthentication CertAuth = null;
         private readonly Cookie ConnectCookie = null;
 
+        public Uri ConnectUri { get; private set; }
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateValidationCallback { get; set; }
         #endregion
 
