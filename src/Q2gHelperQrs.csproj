@@ -8,8 +8,8 @@
     <Company>akquinet finance &amp; controlling GmbH</Company>
     <PackageTags>qlik, QRS</PackageTags>
     <Description>Classes to connect to the QRS engine of Qlik Sense.</Description>
-    <AssemblyVersion>5.2.0.0</AssemblyVersion>
-    <FileVersion>5.2.0.0</FileVersion>
+    <AssemblyVersion>5.1.3.0</AssemblyVersion>
+    <FileVersion>5.1.3.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
